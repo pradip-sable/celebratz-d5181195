@@ -9,8 +9,9 @@ Public (no login):
 - `/search` Results — card grid + filter bottom sheet (area, event type, date, category, budget, capacity), sort
 - `/listing/$slug` Detail — gallery, description, category-specific specs, pricing, availability calendar (Available/Tentative/Booked + "Last updated X days ago"), reviews, sticky "Request to Book" / "Enquire" bar
 - `/category/$slug` and `/events/$slug` — pre-filtered browse landing pages (own SEO metadata)
-- `/auth` — Google, email, phone OTP; account-type choice (customer/vendor) on signup
-- `/for-vendors` — vendor pitch + signup entry
+- `/auth` — Google + email sign-in; account-type choice (customer/vendor) on signup
+- `/for-vendors` — vendor pitch + self-serve signup entry
+- `/about`, `/contact`, `/privacy`, `/terms` — company info and legal pages (linked from footer and from the consent text in the request form)
 
 Customer (`/account/*`, gated):
 - `/account` Bookings & Enquiries (status timeline), `/account/wishlist`, `/account/reviews` (incl. pending review prompts), `/account/profile` (phone verification lives here too)
@@ -62,12 +63,18 @@ Warm celebratory palette: deep teal base, soft gold accent, blush support; a dis
 
 Seeded via migration INSERTs: ~18-24 listings across all 6 categories in real Pune areas with plausible pricing (banquet halls ₹1.2-3.5L/day, catering ₹450-1,200/plate, photography ₹60k-2.5L/event, decor ₹35k-1.5L, DJ ₹25k-80k, pandit ₹5k-21k), realistic reviews, and partially filled availability calendars. Demo vendor + customer accounts so dashboards aren't empty.
 
-## Things to decide / recommendations
+## Resolved decisions
 
-1. **Phone OTP needs an SMS provider.** Built-in auth supports Google and email out of the box; SMS OTP requires a third-party account (MSG91/Twilio, and India needs DLT registration). Recommendation for Phase 1: ship Google + email auth, and treat phone verification as its own step that we can wire to a real SMS provider when you have credentials — with a dev-mode bypass until then. Alternative: skip OTP and just collect a phone number with consent.
-2. **"Request to Book" vs "Enquire" are near-identical** in a no-checkout model. Recommendation: one form, two intents stored on the record — booking request requires an event date, enquiry doesn't. Keeps the UI honest without duplicate flows.
-3. **Availability trust.** Vendor-maintained calendars go stale. The "last updated" stamp helps; I'd also suggest hiding calendar dates older than ~30 days behind "Check with vendor" rather than showing possibly-wrong "Available".
-4. **Reviews without verified attendance** invite fake reviews. Recommendation: only allow a review when the customer has an accepted request whose event date has passed; admin moderation queue for the rest.
-5. **Vendor notification channel.** Leads are worthless if vendors don't see them. Phase 1 = in-app + email. Confirm email is acceptable (WhatsApp is out of scope per brief).
-6. **Pricing display** — "starting price" units differ per category (per plate vs per day). I'll store a unit and render it explicitly so comparisons aren't misleading.
-7. **Unspecified:** vendor self-serve signup or admin-invited only? Multiple listings per vendor (assuming yes)? Do you want a contact/about page and basic legal pages (privacy/terms) since you're collecting phone numbers and sharing them with vendors — I'd recommend including at least a privacy page in Phase 1.
+1. **Auth:** Google + email sign-in in Phase 1. Phone number is always collected with consent; the phone-verification UI ships now with a dev-mode bypass (marks the number captured but not verified). `phone_verified_at` stays null until real SMS OTP is wired after DLT registration. Requests are allowed with an unverified number in Phase 1, and the gate flips on once OTP is live.
+2. **One merged Request/Enquire form** with `kind` stored on the record; event date required for booking requests, optional for enquiries.
+3. **Stale calendars:** if `availability_updated_at` is older than 30 days, the public calendar is replaced by a "Check with vendor" state instead of showing possibly-wrong availability.
+4. **Reviews** are only writable by a customer with an accepted request whose event date has passed; everything else goes to an admin moderation queue. Reviews are `pending` until approved.
+5. **Notifications:** in-app notification center + email to the vendor on each new lead (and to the customer on accept/decline).
+6. **Pricing** always renders with its explicit unit (per plate / per day / per event / per hour) on cards and detail pages.
+7. **Vendors:** self-serve signup, still admin-approved before listings go live; a vendor may own multiple listings across categories.
+8. **Legal/company pages** in Phase 1: Privacy Policy, Terms of Service, About, Contact. I'll draft these from the app's actual data practices (what we collect, that name + phone are shared with the vendor you contact, retention, how to request deletion) — no compliance or certification claims. Please review and confirm the copy, and tell me the business entity name, contact email, and city to put in them; I'll use Celebratz / Pune placeholders until then.
+
+## Open items before build
+
+- Business entity name and support email for the legal pages (placeholders otherwise).
+- Confirm Phase 1 requests can be submitted with an unverified phone number (per decision 1).
