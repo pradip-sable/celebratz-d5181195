@@ -1,12 +1,18 @@
 import { createFileRoute, useSearch } from "@tanstack/react-router";
 import { useState } from "react";
+import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
 import { Button } from "@/components/ui/button";
 import { Mail, Lock, User, Loader2 } from "lucide-react";
 
+const authSearchSchema = z.object({
+  returnTo: z.string().optional(),
+});
+
 export const Route = createFileRoute("/auth")({
   component: AuthPage,
+  validateSearch: authSearchSchema,
   head: () => ({
     meta: [
       { title: "Sign in | Celebratz" },

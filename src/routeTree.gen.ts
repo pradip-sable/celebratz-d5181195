@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthRouteImport } from './routes/auth'
 import { Route as RequestRouteImport } from './routes/request'
 import { Route as SearchRouteImport } from './routes/search'
 import { Route as ListingSlugRouteImport } from './routes/listing.$slug'
@@ -17,6 +18,11 @@ import { Route as ListingSlugRouteImport } from './routes/listing.$slug'
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RequestRoute = RequestRouteImport.update({
@@ -37,12 +43,14 @@ const ListingSlugRoute = ListingSlugRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
   '/request': typeof RequestRoute
   '/search': typeof SearchRoute
   '/listing/$slug': typeof ListingSlugRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
   '/request': typeof RequestRoute
   '/search': typeof SearchRoute
   '/listing/$slug': typeof ListingSlugRoute
@@ -50,20 +58,22 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
   '/request': typeof RequestRoute
   '/search': typeof SearchRoute
   '/listing/$slug': typeof ListingSlugRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/request' | '/search' | '/listing/$slug'
+  fullPaths: '/' | '/auth' | '/request' | '/search' | '/listing/$slug'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/request' | '/search' | '/listing/$slug'
-  id: '__root__' | '/' | '/request' | '/search' | '/listing/$slug'
+  to: '/' | '/auth' | '/request' | '/search' | '/listing/$slug'
+  id: '__root__' | '/' | '/auth' | '/request' | '/search' | '/listing/$slug'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AuthRoute: typeof AuthRoute
   RequestRoute: typeof RequestRoute
   SearchRoute: typeof SearchRoute
   ListingSlugRoute: typeof ListingSlugRoute
@@ -76,6 +86,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/request': {
@@ -104,6 +121,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AuthRoute: AuthRoute,
   RequestRoute: RequestRoute,
   SearchRoute: SearchRoute,
   ListingSlugRoute: ListingSlugRoute,
