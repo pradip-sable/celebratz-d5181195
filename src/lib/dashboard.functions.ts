@@ -107,13 +107,21 @@ export const createListing = createServerFn({ method: "POST" })
         starting_price: data.starting_price,
         pricing_unit: data.pricing_unit,
         address: data.address,
-        status: "pending_review",
+        status: "pending",
       })
       .select("id")
       .single();
     if (error) throw error;
 
-    await context.supabase.from("listing_attributes").insert({ listing_id: listing.id, data: data.attributes });
+    const attributeRows = Object.entries(data.attributes).map(([field_key, value]) => ({
+      listing_id: listing.id,
+      field_key,
+      value: value as any,
+    }));
+    if (attributeRows.length) {
+      await context.supabase.from("listing_attributes").insert(attributeRows);
+    }
+
     await context.supabase.from("listing_event_types").insert(
       data.event_type_ids.map((event_type_id) => ({ listing_id: listing.id, event_type_id }))
     );
