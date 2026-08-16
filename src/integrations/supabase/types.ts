@@ -470,7 +470,7 @@ export type Database = {
         Row: {
           consent_at: string | null
           created_at: string
-          customer_id: string
+          customer_id: string | null
           event_date: string | null
           guest_count: number | null
           id: string
@@ -487,7 +487,7 @@ export type Database = {
         Insert: {
           consent_at?: string | null
           created_at?: string
-          customer_id: string
+          customer_id?: string | null
           event_date?: string | null
           guest_count?: number | null
           id?: string
@@ -504,7 +504,7 @@ export type Database = {
         Update: {
           consent_at?: string | null
           created_at?: string
-          customer_id?: string
+          customer_id?: string | null
           event_date?: string | null
           guest_count?: number | null
           id?: string
