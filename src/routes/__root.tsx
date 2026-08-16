@@ -77,14 +77,13 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { title: "Celebratz — Discover venues & services for celebrations in Pune" },
+      { name: "description", content: "Find and compare banquet halls, photographers, caterers, decorators, DJs and pandits for weddings, birthdays, engagements and corporate events in Pune." },
+      { name: "author", content: "Celebratz" },
+      { property: "og:title", content: "Celebratz — Discover venues & services for celebrations in Pune" },
+      { property: "og:description", content: "Find and compare banquet halls, photographers, caterers, decorators, DJs and pandits for weddings, birthdays, engagements and corporate events in Pune." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:site", content: "@Lovable" },
     ],
     links: [
       {
