@@ -48,11 +48,10 @@ export const submitRequest = createServerFn({ method: "POST" })
       vendor_id: listing.vendor_id,
       kind: data.kind,
       event_date: data.eventDate,
-      preferred_visit_date: data.visitDate || null,
-      preferred_visit_time: data.visitTime || null,
+      visit_date: data.visitDate || null,
+      visit_time: data.visitTime || null,
       message: data.message || null,
-      customer_name: data.customerName,
-      customer_phone: data.customerPhone,
+      phone_snapshot: data.customerPhone,
     });
 
     if (error) throw error;
