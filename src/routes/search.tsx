@@ -1,24 +1,27 @@
 import { createFileRoute, useSearch } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { useState } from "react";
-import { Search, MapPin, Calendar, SlidersHorizontal, X, Star } from "lucide-react";
+import { Search, MapPin, Calendar, SlidersHorizontal, Star } from "lucide-react";
+import { z } from "zod";
 import { searchListings } from "@/lib/listings.functions";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 
+const searchSchema = z.object({
+  q: z.string().optional(),
+  category: z.string().optional(),
+  eventType: z.string().optional(),
+  area: z.string().optional(),
+  date: z.string().optional(),
+  minPrice: z.coerce.number().optional(),
+  maxPrice: z.coerce.number().optional(),
+  minCapacity: z.coerce.number().optional(),
+  maxCapacity: z.coerce.number().optional(),
+});
+
 export const Route = createFileRoute("/search")({
   component: SearchPage,
-  validateSearch: (search: Record<string, unknown>) => ({
-    q: typeof search.q === "string" ? search.q : undefined,
-    category: typeof search.category === "string" ? search.category : undefined,
-    eventType: typeof search.eventType === "string" ? search.eventType : undefined,
-    area: typeof search.area === "string" ? search.area : undefined,
-    date: typeof search.date === "string" ? search.date : undefined,
-    minPrice: typeof search.minPrice === "string" ? Number(search.minPrice) : undefined,
-    maxPrice: typeof search.maxPrice === "string" ? Number(search.maxPrice) : undefined,
-    minCapacity: typeof search.minCapacity === "string" ? Number(search.minCapacity) : undefined,
-    maxCapacity: typeof search.maxCapacity === "string" ? Number(search.maxCapacity) : undefined,
-  }),
+  validateSearch: searchSchema,
   loader: async ({ context, deps }) => {
     await context.queryClient.ensureQueryData({
       queryKey: ["listings", deps],
@@ -48,10 +51,10 @@ function SearchPage() {
     q: search.q ?? "",
     area: search.area ?? "",
     date: search.date ?? "",
-    minPrice: search.minPrice ?? "",
-    maxPrice: search.maxPrice ?? "",
-    minCapacity: search.minCapacity ?? "",
-    maxCapacity: search.maxCapacity ?? "",
+    minPrice: search.minPrice?.toString() ?? "",
+    maxPrice: search.maxPrice?.toString() ?? "",
+    minCapacity: search.minCapacity?.toString() ?? "",
+    maxCapacity: search.maxCapacity?.toString() ?? "",
   });
 
   const updateSearch = () => {
@@ -68,7 +71,7 @@ function SearchPage() {
     window.location.href = `/search?${params.toString()}`;
   };
 
-  const FilterForm = ({ inSheet = false }: { inSheet?: boolean }) => (
+  const FilterForm = () => (
     <div className="space-y-5">
       <div>
         <label className="mb-1.5 block text-sm font-medium">Keyword</label>
@@ -164,7 +167,6 @@ function SearchPage() {
   return (
     <div className="mx-auto max-w-6xl px-4 pb-28 pt-6 md:pb-12">
       <div className="flex flex-col gap-6 md:flex-row">
-        {/* Desktop filters */}
         <aside className="hidden w-72 shrink-0 md:block">
           <div className="sticky top-20 rounded-2xl border border-border/60 bg-card p-5 shadow-sm">
             <h2 className="font-serif text-lg font-semibold">Filters</h2>
@@ -174,7 +176,6 @@ function SearchPage() {
           </div>
         </aside>
 
-        {/* Results */}
         <div className="flex-1">
           <div className="flex items-center justify-between">
             <div>
@@ -197,7 +198,7 @@ function SearchPage() {
                   <SheetTitle>Filters</SheetTitle>
                 </SheetHeader>
                 <div className="mt-6">
-                  <FilterForm inSheet />
+                  <FilterForm />
                 </div>
               </SheetContent>
             </Sheet>

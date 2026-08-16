@@ -87,17 +87,16 @@ function Home() {
         <h2 className="font-serif text-xl font-semibold md:text-2xl">Browse by category</h2>
         <div className="mt-5 grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-6">
           {data.categories.map((cat) => (
-            <Link
+            <a
               key={cat.slug}
-              to="/search"
-              search={{ category: cat.slug }}
+              href={`/search?category=${cat.slug}`}
               className="group rounded-2xl border border-border/60 bg-card p-4 text-center shadow-sm transition hover:border-primary/30 hover:shadow-md"
             >
               <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-2xl group-hover:bg-primary/20">
                 {cat.icon}
               </div>
               <p className="mt-3 text-sm font-medium leading-tight">{cat.name}</p>
-            </Link>
+            </a>
           ))}
         </div>
       </section>
@@ -107,15 +106,14 @@ function Home() {
         <h2 className="font-serif text-xl font-semibold md:text-2xl">Planning for</h2>
         <div className="mt-4 flex flex-wrap gap-2">
           {data.eventTypes.map((et) => (
-            <Link
+            <a
               key={et.slug}
-              to="/search"
-              search={{ eventType: et.slug }}
+              href={`/search?eventType=${et.slug}`}
               className="inline-flex items-center gap-1.5 rounded-full border border-border/60 bg-card px-4 py-2 text-sm font-medium hover:border-primary/30 hover:bg-primary/5"
             >
               <PartyPopper className="h-3.5 w-3.5 text-primary" />
               {et.name}
-            </Link>
+            </a>
           ))}
         </div>
       </section>
@@ -124,9 +122,9 @@ function Home() {
       <section className="mx-auto max-w-5xl px-4 pb-12">
         <div className="flex items-center justify-between">
           <h2 className="font-serif text-xl font-semibold md:text-2xl">Featured listings</h2>
-          <Link to="/search" className="text-sm font-medium text-primary hover:underline">
+          <a href="/search" className="text-sm font-medium text-primary hover:underline">
             View all
-          </Link>
+          </a>
         </div>
         <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {data.featured.map((listing) => (
