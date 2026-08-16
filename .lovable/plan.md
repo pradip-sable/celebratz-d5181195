@@ -49,7 +49,7 @@ Security: RLS everywhere. Public read only for `status = 'live'` listings and th
 
 ## Key flows
 
-Customer: browse → filter → listing detail → tap Request/Enquire → single-screen form → if not signed in, auth prompt inline; if phone unverified, OTP step → consent text shown → submit → request appears in My Bookings as "Sent"; vendor accept/decline updates status. After event date passes, a review prompt appears in the app.
+Customer: browse → filter → listing detail → tap Request/Enquire → single-screen form (date, visit date/time, message, guest count) → if not signed in, auth prompt inline → phone number collected with double-entry to prevent typos (no OTP gate in Phase 1) → explicit consent text shown, linking to /privacy → submit → request appears in My Bookings as "Sent"; vendor accept/decline updates status. After event date passes, a review prompt appears in the app.
 
 Vendor: signup as vendor → business profile → status pending (visible banner) → admin approves → create listing (category picks the field set) → upload media → submit for review → live → manage calendar (tap a date to cycle Available → Tentative → Booked, stamping `availability_updated_at`) → receive leads → accept/decline with a note.
 
@@ -72,9 +72,8 @@ Seeded via migration INSERTs: ~18-24 listings across all 6 categories in real Pu
 5. **Notifications:** in-app notification center + email to the vendor on each new lead (and to the customer on accept/decline).
 6. **Pricing** always renders with its explicit unit (per plate / per day / per event / per hour) on cards and detail pages.
 7. **Vendors:** self-serve signup, still admin-approved before listings go live; a vendor may own multiple listings across categories.
-8. **Legal/company pages** in Phase 1: Privacy Policy, Terms of Service, About, Contact. I'll draft these from the app's actual data practices (what we collect, that name + phone are shared with the vendor you contact, retention, how to request deletion) — no compliance or certification claims. Please review and confirm the copy, and tell me the business entity name, contact email, and city to put in them; I'll use Celebratz / Pune placeholders until then.
+8. **Legal/company pages** in Phase 1: Privacy Policy, Terms of Service, About, Contact. Drafted for "Celebratz" in Pune, support email celebratz@gmail.com, with owner-authored statements about what data is collected and that name + phone are shared with the vendor you contact. No compliance/certification claims; will be reviewed when formal registration is complete.
 
 ## Open items before build
 
-- Business entity name and support email for the legal pages (placeholders otherwise).
-- Confirm Phase 1 requests can be submitted with an unverified phone number (per decision 1).
+- None. Plan is ready for implementation.
