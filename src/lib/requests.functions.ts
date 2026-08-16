@@ -5,7 +5,7 @@ import type { Database } from "@/integrations/supabase/types";
 
 const requestSchema = z.object({
   listingId: z.string().uuid(),
-  kind: z.enum(["booking", "enquiry"]),
+  kind: z.enum(["booking_request", "enquiry"]),
   eventDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/), // YYYY-MM-DD
   visitDate: z.string().optional(),
   visitTime: z.string().optional(),
@@ -53,7 +53,6 @@ export const submitRequest = createServerFn({ method: "POST" })
       message: data.message || null,
       customer_name: data.customerName,
       customer_phone: data.customerPhone,
-      status: "pending",
     });
 
     if (error) throw error;

@@ -10,12 +10,18 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as RequestRouteImport } from './routes/request'
 import { Route as SearchRouteImport } from './routes/search'
 import { Route as ListingSlugRouteImport } from './routes/listing.$slug'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RequestRoute = RequestRouteImport.update({
+  id: '/request',
+  path: '/request',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SearchRoute = SearchRouteImport.update({
@@ -31,30 +37,34 @@ const ListingSlugRoute = ListingSlugRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/request': typeof RequestRoute
   '/search': typeof SearchRoute
   '/listing/$slug': typeof ListingSlugRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/request': typeof RequestRoute
   '/search': typeof SearchRoute
   '/listing/$slug': typeof ListingSlugRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/request': typeof RequestRoute
   '/search': typeof SearchRoute
   '/listing/$slug': typeof ListingSlugRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/search' | '/listing/$slug'
+  fullPaths: '/' | '/request' | '/search' | '/listing/$slug'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/search' | '/listing/$slug'
-  id: '__root__' | '/' | '/search' | '/listing/$slug'
+  to: '/' | '/request' | '/search' | '/listing/$slug'
+  id: '__root__' | '/' | '/request' | '/search' | '/listing/$slug'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  RequestRoute: typeof RequestRoute
   SearchRoute: typeof SearchRoute
   ListingSlugRoute: typeof ListingSlugRoute
 }
@@ -66,6 +76,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/request': {
+      id: '/request'
+      path: '/request'
+      fullPath: '/request'
+      preLoaderRoute: typeof RequestRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/search': {
@@ -87,6 +104,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  RequestRoute: RequestRoute,
   SearchRoute: SearchRoute,
   ListingSlugRoute: ListingSlugRoute,
 }
