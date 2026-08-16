@@ -14,12 +14,12 @@ export function Layout({ children }: { children: ReactNode }) {
             <span className="font-serif text-xl font-semibold text-primary">Celebratz</span>
           </Link>
           <nav className="hidden items-center gap-6 text-sm font-medium md:flex">
-            <Link to="/search" className="hover:text-primary">Search</Link>
-            <Link to="/about" className="hover:text-primary">About</Link>
-            <Link to="/contact" className="hover:text-primary">Contact</Link>
-            <Link to="/auth" className="rounded-full bg-primary px-4 py-1.5 text-primary-foreground hover:bg-primary/90">
+            <a href="/search" className="hover:text-primary">Search</a>
+            <a href="/about" className="hover:text-primary">About</a>
+            <a href="/contact" className="hover:text-primary">Contact</a>
+            <a href="/auth" className="rounded-full bg-primary px-4 py-1.5 text-primary-foreground hover:bg-primary/90">
               Sign in
-            </Link>
+            </a>
           </nav>
         </div>
       </header>
@@ -31,10 +31,10 @@ export function Layout({ children }: { children: ReactNode }) {
           <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
             <span className="font-serif text-lg font-semibold text-foreground">Celebratz</span>
             <div className="flex flex-wrap gap-4">
-              <Link to="/about" className="hover:text-foreground">About</Link>
-              <Link to="/contact" className="hover:text-foreground">Contact</Link>
-              <Link to="/privacy" className="hover:text-foreground">Privacy</Link>
-              <Link to="/terms" className="hover:text-foreground">Terms</Link>
+              <a href="/about" className="hover:text-foreground">About</a>
+              <a href="/contact" className="hover:text-foreground">Contact</a>
+              <a href="/privacy" className="hover:text-foreground">Privacy</a>
+              <a href="/terms" className="hover:text-foreground">Terms</a>
             </div>
           </div>
           <p className="mt-4">© {new Date().getFullYear()} Celebratz. Celebrations made simple in Pune.</p>
@@ -60,12 +60,12 @@ function MobileNavItem({ to, icon: Icon, label }: { to: string; icon: typeof Hom
   const { pathname } = useLocation();
   const active = pathname === to || pathname.startsWith(`${to}/`);
   return (
-    <Link
-      to={to}
+    <a
+      href={to}
       className={`flex flex-col items-center gap-0.5 px-3 py-1 text-xs ${active ? "text-primary" : "text-muted-foreground"}`}
     >
       <Icon className="h-5 w-5" />
       <span>{label}</span>
-    </Link>
+    </a>
   );
 }
