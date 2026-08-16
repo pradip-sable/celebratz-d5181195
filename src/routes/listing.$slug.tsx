@@ -60,7 +60,7 @@ function ListingPage() {
           {/* Gallery */}
           <div className="relative overflow-hidden rounded-2xl border border-border/60 bg-muted">
             <img
-              src={images[activeImage].storage_path}
+              src={images[activeImage]?.storage_path}
               alt={listing.title}
               className="aspect-[16/10] w-full object-cover"
             />
