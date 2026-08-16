@@ -9,8 +9,9 @@ Public (no login):
 - `/search` Results — card grid + filter bottom sheet (area, event type, date, category, budget, capacity), sort
 - `/listing/$slug` Detail — gallery, description, category-specific specs, pricing, availability calendar (Available/Tentative/Booked + "Last updated X days ago"), reviews, sticky "Request to Book" / "Enquire" bar
 - `/category/$slug` and `/events/$slug` — pre-filtered browse landing pages (own SEO metadata)
-- `/auth` — Google, email, phone OTP; account-type choice (customer/vendor) on signup
-- `/for-vendors` — vendor pitch + signup entry
+- `/auth` — Google + email sign-in; account-type choice (customer/vendor) on signup
+- `/for-vendors` — vendor pitch + self-serve signup entry
+- `/about`, `/contact`, `/privacy`, `/terms` — company info and legal pages (linked from footer and from the consent text in the request form)
 
 Customer (`/account/*`, gated):
 - `/account` Bookings & Enquiries (status timeline), `/account/wishlist`, `/account/reviews` (incl. pending review prompts), `/account/profile` (phone verification lives here too)
