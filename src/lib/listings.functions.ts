@@ -1,5 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
+import { createClient } from "@supabase/supabase-js";
 import { z } from "zod";
+import type { Database } from "@/integrations/supabase/types";
 
 const searchInputSchema = z.object({
   q: z.string().optional(),
@@ -13,17 +15,18 @@ const searchInputSchema = z.object({
   maxCapacity: z.coerce.number().optional(),
 });
 
+function publicClient() {
+  return createClient<Database>(
+    process.env["SUPABASE_URL"]!,
+    process.env["SUPABASE_PUBLISHABLE_KEY"]!,
+    { auth: { persistSession: false, autoRefreshToken: false } }
+  );
+}
+
 export const searchListings = createServerFn({ method: "GET" })
   .inputValidator((data) => searchInputSchema.parse(data))
   .handler(async ({ data }) => {
-    const { createClient } = await import("@supabase/supabase-js");
-    const { Database } = await import("@/integrations/supabase/types");
-
-    const supabase = createClient<Database>(
-      process.env["SUPABASE_URL"]!,
-      process.env["SUPABASE_PUBLISHABLE_KEY"]!,
-      { auth: { persistSession: false, autoRefreshToken: false } }
-    );
+    const supabase = publicClient();
 
     let query = supabase
       .from("listings")
@@ -81,14 +84,7 @@ const slugSchema = z.object({ slug: z.string() });
 export const getListingBySlug = createServerFn({ method: "GET" })
   .inputValidator((data) => slugSchema.parse(data))
   .handler(async ({ data }) => {
-    const { createClient } = await import("@supabase/supabase-js");
-    const { Database } = await import("@/integrations/supabase/types");
-
-    const supabase = createClient<Database>(
-      process.env["SUPABASE_URL"]!,
-      process.env["SUPABASE_PUBLISHABLE_KEY"]!,
-      { auth: { persistSession: false, autoRefreshToken: false } }
-    );
+    const supabase = publicClient();
 
     const { data: listing, error } = await supabase
       .from("listings")
@@ -131,14 +127,7 @@ export const getListingBySlug = createServerFn({ method: "GET" })
 
 export const getHomeData = createServerFn({ method: "GET" })
   .handler(async () => {
-    const { createClient } = await import("@supabase/supabase-js");
-    const { Database } = await import("@/integrations/supabase/types");
-
-    const supabase = createClient<Database>(
-      process.env["SUPABASE_URL"]!,
-      process.env["SUPABASE_PUBLISHABLE_KEY"]!,
-      { auth: { persistSession: false, autoRefreshToken: false } }
-    );
+    const supabase = publicClient();
 
     const [{ data: categories }, { data: eventTypes }, { data: areas }, { data: featured }] = await Promise.all([
       supabase.from("categories").select("id, name, slug, icon, description").order("sort_order"),
