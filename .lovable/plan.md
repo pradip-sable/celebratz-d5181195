@@ -49,7 +49,7 @@ Security: RLS everywhere. Public read only for `status = 'live'` listings and th
 
 ## Key flows
 
-Customer: browse → filter → listing detail → tap Request/Enquire → single-screen form → if not signed in, auth prompt inline; if phone unverified, OTP step → consent text shown → submit → request appears in My Bookings as "Sent"; vendor accept/decline updates status. After event date passes, a review prompt appears in the app.
+Customer: browse → filter → listing detail → tap Request/Enquire → single-screen form (date, visit date/time, message, guest count) → if not signed in, auth prompt inline → phone number collected with double-entry to prevent typos (no OTP gate in Phase 1) → explicit consent text shown, linking to /privacy → submit → request appears in My Bookings as "Sent"; vendor accept/decline updates status. After event date passes, a review prompt appears in the app.
 
 Vendor: signup as vendor → business profile → status pending (visible banner) → admin approves → create listing (category picks the field set) → upload media → submit for review → live → manage calendar (tap a date to cycle Available → Tentative → Booked, stamping `availability_updated_at`) → receive leads → accept/decline with a note.
 
