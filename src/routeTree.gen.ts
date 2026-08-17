@@ -18,8 +18,14 @@ import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as RequestRouteImport } from './routes/request'
 import { Route as SearchRouteImport } from './routes/search'
 import { Route as TermsRouteImport } from './routes/terms'
+import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedReviewsRouteImport } from './routes/_authenticated/reviews'
+import { Route as AuthenticatedWishlistRouteImport } from './routes/_authenticated/wishlist'
 import { Route as ListingSlugRouteImport } from './routes/listing.$slug'
+import { Route as AuthenticatedVendorIndexRouteImport } from './routes/_authenticated/vendor/index'
+import { Route as AuthenticatedVendorCalendarListingIdRouteImport } from './routes/_authenticated/vendor/calendar.$listingId'
+import { Route as AuthenticatedVendorListingsNewRouteImport } from './routes/_authenticated/vendor/listings.new'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -65,9 +71,24 @@ const TermsRoute = TermsRouteImport.update({
   path: '/terms',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedReviewsRoute = AuthenticatedReviewsRouteImport.update({
+  id: '/reviews',
+  path: '/reviews',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedWishlistRoute = AuthenticatedWishlistRouteImport.update({
+  id: '/wishlist',
+  path: '/wishlist',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const ListingSlugRoute = ListingSlugRouteImport.update({
@@ -75,6 +96,24 @@ const ListingSlugRoute = ListingSlugRouteImport.update({
   path: '/listing/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedVendorIndexRoute =
+  AuthenticatedVendorIndexRouteImport.update({
+    id: '/vendor/',
+    path: '/vendor/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedVendorCalendarListingIdRoute =
+  AuthenticatedVendorCalendarListingIdRouteImport.update({
+    id: '/vendor/calendar/$listingId',
+    path: '/vendor/calendar/$listingId',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedVendorListingsNewRoute =
+  AuthenticatedVendorListingsNewRouteImport.update({
+    id: '/vendor/listings/new',
+    path: '/vendor/listings/new',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -85,8 +124,14 @@ export interface FileRoutesByFullPath {
   '/request': typeof RequestRoute
   '/search': typeof SearchRoute
   '/terms': typeof TermsRoute
+  '/admin': typeof AuthenticatedAdminRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/reviews': typeof AuthenticatedReviewsRoute
+  '/wishlist': typeof AuthenticatedWishlistRoute
   '/listing/$slug': typeof ListingSlugRoute
+  '/vendor/': typeof AuthenticatedVendorIndexRoute
+  '/vendor/calendar/$listingId': typeof AuthenticatedVendorCalendarListingIdRoute
+  '/vendor/listings/new': typeof AuthenticatedVendorListingsNewRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -97,8 +142,14 @@ export interface FileRoutesByTo {
   '/request': typeof RequestRoute
   '/search': typeof SearchRoute
   '/terms': typeof TermsRoute
+  '/admin': typeof AuthenticatedAdminRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/reviews': typeof AuthenticatedReviewsRoute
+  '/wishlist': typeof AuthenticatedWishlistRoute
   '/listing/$slug': typeof ListingSlugRoute
+  '/vendor': typeof AuthenticatedVendorIndexRoute
+  '/vendor/calendar/$listingId': typeof AuthenticatedVendorCalendarListingIdRoute
+  '/vendor/listings/new': typeof AuthenticatedVendorListingsNewRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -111,8 +162,14 @@ export interface FileRoutesById {
   '/request': typeof RequestRoute
   '/search': typeof SearchRoute
   '/terms': typeof TermsRoute
+  '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/reviews': typeof AuthenticatedReviewsRoute
+  '/_authenticated/wishlist': typeof AuthenticatedWishlistRoute
   '/listing/$slug': typeof ListingSlugRoute
+  '/_authenticated/vendor/': typeof AuthenticatedVendorIndexRoute
+  '/_authenticated/vendor/calendar/$listingId': typeof AuthenticatedVendorCalendarListingIdRoute
+  '/_authenticated/vendor/listings/new': typeof AuthenticatedVendorListingsNewRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -125,8 +182,14 @@ export interface FileRouteTypes {
     | '/request'
     | '/search'
     | '/terms'
+    | '/admin'
     | '/dashboard'
+    | '/reviews'
+    | '/wishlist'
     | '/listing/$slug'
+    | '/vendor/'
+    | '/vendor/calendar/$listingId'
+    | '/vendor/listings/new'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -137,8 +200,14 @@ export interface FileRouteTypes {
     | '/request'
     | '/search'
     | '/terms'
+    | '/admin'
     | '/dashboard'
+    | '/reviews'
+    | '/wishlist'
     | '/listing/$slug'
+    | '/vendor'
+    | '/vendor/calendar/$listingId'
+    | '/vendor/listings/new'
   id:
     | '__root__'
     | '/'
@@ -150,8 +219,14 @@ export interface FileRouteTypes {
     | '/request'
     | '/search'
     | '/terms'
+    | '/_authenticated/admin'
     | '/_authenticated/dashboard'
+    | '/_authenticated/reviews'
+    | '/_authenticated/wishlist'
     | '/listing/$slug'
+    | '/_authenticated/vendor/'
+    | '/_authenticated/vendor/calendar/$listingId'
+    | '/_authenticated/vendor/listings/new'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -232,11 +307,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TermsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/admin': {
+      id: '/_authenticated/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AuthenticatedAdminRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/dashboard': {
       id: '/_authenticated/dashboard'
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/reviews': {
+      id: '/_authenticated/reviews'
+      path: '/reviews'
+      fullPath: '/reviews'
+      preLoaderRoute: typeof AuthenticatedReviewsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/wishlist': {
+      id: '/_authenticated/wishlist'
+      path: '/wishlist'
+      fullPath: '/wishlist'
+      preLoaderRoute: typeof AuthenticatedWishlistRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/listing/$slug': {
@@ -246,15 +342,49 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ListingSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/vendor/': {
+      id: '/_authenticated/vendor/'
+      path: '/vendor'
+      fullPath: '/vendor/'
+      preLoaderRoute: typeof AuthenticatedVendorIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/vendor/calendar/$listingId': {
+      id: '/_authenticated/vendor/calendar/$listingId'
+      path: '/vendor/calendar/$listingId'
+      fullPath: '/vendor/calendar/$listingId'
+      preLoaderRoute: typeof AuthenticatedVendorCalendarListingIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/vendor/listings/new': {
+      id: '/_authenticated/vendor/listings/new'
+      path: '/vendor/listings/new'
+      fullPath: '/vendor/listings/new'
+      preLoaderRoute: typeof AuthenticatedVendorListingsNewRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedReviewsRoute: typeof AuthenticatedReviewsRoute
+  AuthenticatedWishlistRoute: typeof AuthenticatedWishlistRoute
+  AuthenticatedVendorIndexRoute: typeof AuthenticatedVendorIndexRoute
+  AuthenticatedVendorCalendarListingIdRoute: typeof AuthenticatedVendorCalendarListingIdRoute
+  AuthenticatedVendorListingsNewRoute: typeof AuthenticatedVendorListingsNewRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedAdminRoute: AuthenticatedAdminRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedReviewsRoute: AuthenticatedReviewsRoute,
+  AuthenticatedWishlistRoute: AuthenticatedWishlistRoute,
+  AuthenticatedVendorIndexRoute: AuthenticatedVendorIndexRoute,
+  AuthenticatedVendorCalendarListingIdRoute:
+    AuthenticatedVendorCalendarListingIdRoute,
+  AuthenticatedVendorListingsNewRoute: AuthenticatedVendorListingsNewRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
