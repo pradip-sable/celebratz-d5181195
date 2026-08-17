@@ -48,7 +48,7 @@ export const getMyReviewData = createServerFn({ method: "GET" })
     const [{ data: reviews }, { data: eligible }] = await Promise.all([
       context.supabase
         .from("reviews")
-        .select("id, rating, body, status, created_at, listing:listings(title, slug)")
+        .select("id, rating, body, status, created_at, request_id, listing:listings(title, slug)")
         .eq("customer_id", context.userId)
         .order("created_at", { ascending: false }),
       context.supabase
