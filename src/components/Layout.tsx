@@ -1,10 +1,29 @@
-import { Link, useLocation } from "@tanstack/react-router";
-import { Search, Heart, CalendarDays, User, Home } from "lucide-react";
-import { ReactNode } from "react";
+import { Link, useLocation, useNavigate } from "@tanstack/react-router";
+import { Search, Heart, CalendarDays, User, Home, LogOut } from "lucide-react";
+import { ReactNode, useEffect, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
 
 export function Layout({ children }: { children: ReactNode }) {
   const { pathname } = useLocation();
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const hideNav = pathname.startsWith("/auth") || pathname.startsWith("/request");
+  const [signedIn, setSignedIn] = useState(false);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => setSignedIn(Boolean(data.session)));
+    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => setSignedIn(Boolean(session)));
+    return () => sub.subscription.unsubscribe();
+  }, []);
+
+  async function handleSignOut() {
+    await queryClient.cancelQueries();
+    queryClient.clear();
+    await supabase.auth.signOut();
+    navigate({ to: "/auth", replace: true });
+  }
 
   return (
     <div className="flex min-h-screen flex-col bg-background font-sans text-foreground">
@@ -14,12 +33,35 @@ export function Layout({ children }: { children: ReactNode }) {
             <span className="font-serif text-xl font-semibold text-primary">Celebratz</span>
           </Link>
           <nav className="hidden items-center gap-6 text-sm font-medium md:flex">
-            <a href="/search" className="hover:text-primary">Search</a>
-            <a href="/about" className="hover:text-primary">About</a>
-            <a href="/contact" className="hover:text-primary">Contact</a>
-            <a href="/auth" className="rounded-full bg-primary px-4 py-1.5 text-primary-foreground hover:bg-primary/90">
-              Sign in
-            </a>
+            <Link to="/search" className="hover:text-primary">
+              Search
+            </Link>
+            <Link to="/about" className="hover:text-primary">
+              About
+            </Link>
+            <Link to="/contact" className="hover:text-primary">
+              Contact
+            </Link>
+            {signedIn ? (
+              <>
+                <Link to="/vendor" className="hover:text-primary">
+                  For vendors
+                </Link>
+                <Link to="/dashboard" className="hover:text-primary">
+                  My account
+                </Link>
+                <Button variant="outline" size="sm" className="rounded-full" onClick={handleSignOut}>
+                  <LogOut className="mr-1.5 h-4 w-4" /> Sign out
+                </Button>
+              </>
+            ) : (
+              <Link
+                to="/auth"
+                className="rounded-full bg-primary px-4 py-1.5 text-primary-foreground hover:bg-primary/90"
+              >
+                Sign in
+              </Link>
+            )}
           </nav>
         </div>
       </header>
@@ -31,10 +73,21 @@ export function Layout({ children }: { children: ReactNode }) {
           <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
             <span className="font-serif text-lg font-semibold text-foreground">Celebratz</span>
             <div className="flex flex-wrap gap-4">
-              <a href="/about" className="hover:text-foreground">About</a>
-              <a href="/contact" className="hover:text-foreground">Contact</a>
-              <a href="/privacy" className="hover:text-foreground">Privacy</a>
-              <a href="/terms" className="hover:text-foreground">Terms</a>
+              <Link to="/about" className="hover:text-foreground">
+                About
+              </Link>
+              <Link to="/contact" className="hover:text-foreground">
+                Contact
+              </Link>
+              <Link to="/privacy" className="hover:text-foreground">
+                Privacy
+              </Link>
+              <Link to="/terms" className="hover:text-foreground">
+                Terms
+              </Link>
+              <Link to="/vendor" className="hover:text-foreground">
+                List your business
+              </Link>
             </div>
           </div>
           <p className="mt-4">© {new Date().getFullYear()} Celebratz. Celebrations made simple in Pune.</p>
@@ -46,9 +99,9 @@ export function Layout({ children }: { children: ReactNode }) {
           <div className="mx-auto flex max-w-md justify-around py-2">
             <MobileNavItem to="/" icon={Home} label="Home" />
             <MobileNavItem to="/search" icon={Search} label="Search" />
-            <MobileNavItem to="/dashboard/bookings" icon={CalendarDays} label="Bookings" />
-            <MobileNavItem to="/dashboard/wishlist" icon={Heart} label="Wishlist" />
-            <MobileNavItem to="/dashboard/profile" icon={User} label="Profile" />
+            <MobileNavItem to="/dashboard" icon={CalendarDays} label="Bookings" />
+            <MobileNavItem to="/wishlist" icon={Heart} label="Wishlist" />
+            <MobileNavItem to="/reviews" icon={User} label="Reviews" />
           </div>
         </nav>
       )}
@@ -60,12 +113,12 @@ function MobileNavItem({ to, icon: Icon, label }: { to: string; icon: typeof Hom
   const { pathname } = useLocation();
   const active = pathname === to || pathname.startsWith(`${to}/`);
   return (
-    <a
-      href={to}
+    <Link
+      to={to}
       className={`flex flex-col items-center gap-0.5 px-3 py-1 text-xs ${active ? "text-primary" : "text-muted-foreground"}`}
     >
       <Icon className="h-5 w-5" />
       <span>{label}</span>
-    </a>
+    </Link>
   );
 }
