@@ -90,7 +90,7 @@ function VendorCalendar() {
               key={date}
               type="button"
               disabled={mutation.isPending}
-              onClick={() => mutation.mutate({ date, state: NEXT[state] })}
+              onClick={() => mutation.mutate({ date, state: NEXT[state] ?? "available" })}
               className={`rounded-xl border p-2 text-center text-sm transition ${STATE_CLASS[state]}`}
             >
               <span className="block text-xs opacity-70">{d.toLocaleDateString("en-IN", { month: "short" })}</span>
