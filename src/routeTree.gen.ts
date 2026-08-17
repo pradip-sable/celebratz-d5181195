@@ -18,6 +18,7 @@ import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as RequestRouteImport } from './routes/request'
 import { Route as SearchRouteImport } from './routes/search'
 import { Route as TermsRouteImport } from './routes/terms'
+import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as ListingSlugRouteImport } from './routes/listing.$slug'
 import { Route as AuthenticatedVendorIndexRouteImport } from './routes/_authenticated/vendor/index'
@@ -68,6 +69,11 @@ const TermsRoute = TermsRouteImport.update({
   path: '/terms',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
@@ -106,6 +112,7 @@ export interface FileRoutesByFullPath {
   '/request': typeof RequestRoute
   '/search': typeof SearchRoute
   '/terms': typeof TermsRoute
+  '/admin': typeof AuthenticatedAdminRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/listing/$slug': typeof ListingSlugRoute
   '/vendor/': typeof AuthenticatedVendorIndexRoute
@@ -121,6 +128,7 @@ export interface FileRoutesByTo {
   '/request': typeof RequestRoute
   '/search': typeof SearchRoute
   '/terms': typeof TermsRoute
+  '/admin': typeof AuthenticatedAdminRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/listing/$slug': typeof ListingSlugRoute
   '/vendor': typeof AuthenticatedVendorIndexRoute
@@ -138,6 +146,7 @@ export interface FileRoutesById {
   '/request': typeof RequestRoute
   '/search': typeof SearchRoute
   '/terms': typeof TermsRoute
+  '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/listing/$slug': typeof ListingSlugRoute
   '/_authenticated/vendor/': typeof AuthenticatedVendorIndexRoute
@@ -155,6 +164,7 @@ export interface FileRouteTypes {
     | '/request'
     | '/search'
     | '/terms'
+    | '/admin'
     | '/dashboard'
     | '/listing/$slug'
     | '/vendor/'
@@ -170,6 +180,7 @@ export interface FileRouteTypes {
     | '/request'
     | '/search'
     | '/terms'
+    | '/admin'
     | '/dashboard'
     | '/listing/$slug'
     | '/vendor'
@@ -186,6 +197,7 @@ export interface FileRouteTypes {
     | '/request'
     | '/search'
     | '/terms'
+    | '/_authenticated/admin'
     | '/_authenticated/dashboard'
     | '/listing/$slug'
     | '/_authenticated/vendor/'
@@ -271,6 +283,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TermsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/admin': {
+      id: '/_authenticated/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AuthenticatedAdminRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/dashboard': {
       id: '/_authenticated/dashboard'
       path: '/dashboard'
@@ -310,6 +329,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedVendorIndexRoute: typeof AuthenticatedVendorIndexRoute
   AuthenticatedVendorCalendarListingIdRoute: typeof AuthenticatedVendorCalendarListingIdRoute
@@ -317,6 +337,7 @@ interface AuthenticatedRouteRouteChildren {
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedAdminRoute: AuthenticatedAdminRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedVendorIndexRoute: AuthenticatedVendorIndexRoute,
   AuthenticatedVendorCalendarListingIdRoute:
