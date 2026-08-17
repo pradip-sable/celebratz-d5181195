@@ -20,6 +20,7 @@ import { Route as SearchRouteImport } from './routes/search'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as ListingSlugRouteImport } from './routes/listing.$slug'
+import { Route as AuthenticatedVendorIndexRouteImport } from './routes/_authenticated/vendor/index'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -75,6 +76,12 @@ const ListingSlugRoute = ListingSlugRouteImport.update({
   path: '/listing/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedVendorIndexRoute =
+  AuthenticatedVendorIndexRouteImport.update({
+    id: '/vendor/',
+    path: '/vendor/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -87,6 +94,7 @@ export interface FileRoutesByFullPath {
   '/terms': typeof TermsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/listing/$slug': typeof ListingSlugRoute
+  '/vendor/': typeof AuthenticatedVendorIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -99,6 +107,7 @@ export interface FileRoutesByTo {
   '/terms': typeof TermsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/listing/$slug': typeof ListingSlugRoute
+  '/vendor': typeof AuthenticatedVendorIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -113,6 +122,7 @@ export interface FileRoutesById {
   '/terms': typeof TermsRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/listing/$slug': typeof ListingSlugRoute
+  '/_authenticated/vendor/': typeof AuthenticatedVendorIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -127,6 +137,7 @@ export interface FileRouteTypes {
     | '/terms'
     | '/dashboard'
     | '/listing/$slug'
+    | '/vendor/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -139,6 +150,7 @@ export interface FileRouteTypes {
     | '/terms'
     | '/dashboard'
     | '/listing/$slug'
+    | '/vendor'
   id:
     | '__root__'
     | '/'
@@ -152,6 +164,7 @@ export interface FileRouteTypes {
     | '/terms'
     | '/_authenticated/dashboard'
     | '/listing/$slug'
+    | '/_authenticated/vendor/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -246,15 +259,24 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ListingSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/vendor/': {
+      id: '/_authenticated/vendor/'
+      path: '/vendor'
+      fullPath: '/vendor/'
+      preLoaderRoute: typeof AuthenticatedVendorIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedVendorIndexRoute: typeof AuthenticatedVendorIndexRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedVendorIndexRoute: AuthenticatedVendorIndexRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
