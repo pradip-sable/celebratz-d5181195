@@ -130,3 +130,36 @@ export const createListing = createServerFn({ method: "POST" })
 
     return { ok: true, listingId: listing.id };
   });
+
+export const updateMyProfile = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data) =>
+    z
+      .object({
+        full_name: z.string().min(1).max(120),
+        phone: z.string().min(10).max(20),
+      })
+      .parse(data)
+  )
+  .handler(async ({ context, data }) => {
+    const { error } = await context.supabase
+      .from("profiles")
+      .update({ full_name: data.full_name, phone: data.phone })
+      .eq("id", context.userId);
+    if (error) throw error;
+    return { ok: true };
+  });
+
+/** Dev-mode phone "verification" — real SMS OTP lands once DLT registration completes. */
+export const devVerifyPhone = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data) => z.object({ code: z.string().min(4) }).parse(data))
+  .handler(async ({ context, data }) => {
+    if (data.code !== "000000") throw new Error("Invalid code. Use 000000 while OTP is in dev mode.");
+    const { error } = await context.supabase
+      .from("profiles")
+      .update({ phone_verified_at: new Date().toISOString() })
+      .eq("id", context.userId);
+    if (error) throw error;
+    return { ok: true };
+  });
