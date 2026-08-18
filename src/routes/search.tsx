@@ -22,6 +22,7 @@ const searchSchema = z.object({
 export const Route = createFileRoute("/search")({
   component: SearchPage,
   validateSearch: searchSchema,
+  loaderDeps: ({ search }) => search,
   loader: async ({ context, deps }) => {
     await context.queryClient.ensureQueryData({
       queryKey: ["listings", deps],

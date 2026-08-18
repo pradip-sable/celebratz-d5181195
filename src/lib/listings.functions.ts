@@ -3,7 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 import { z } from "zod";
 import type { Database } from "@/integrations/supabase/types";
 
-const searchInputSchema = z.object({
+const rawSearchSchema = z.object({
   q: z.string().optional(),
   category: z.string().optional(),
   eventType: z.string().optional(),
@@ -14,6 +14,19 @@ const searchInputSchema = z.object({
   minCapacity: z.coerce.number().optional(),
   maxCapacity: z.coerce.number().optional(),
 });
+
+// GET server fns can arrive with an empty/string payload; normalize before parsing.
+const searchInputSchema = z.preprocess((val) => {
+  if (val == null || val === "") return {};
+  if (typeof val === "string") {
+    try {
+      return JSON.parse(val);
+    } catch {
+      return {};
+    }
+  }
+  return val;
+}, rawSearchSchema);
 
 function publicClient() {
   return createClient<Database>(
