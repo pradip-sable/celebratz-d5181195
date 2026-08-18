@@ -128,14 +128,31 @@ export const getListingBySlug = createServerFn({ method: "GET" })
 
     const { data: reviews, error: reviewError } = await supabase
       .from("reviews")
-      .select("rating, body, created_at, profiles(full_name)")
+      .select("rating, body, created_at, customer_id")
       .eq("listing_id", listing.id)
       .eq("status", "approved")
       .order("created_at", { ascending: false });
 
     if (reviewError) throw reviewError;
 
-    return { listing, availability: availability ?? [], reviews: reviews ?? [] };
+    // reviews.customer_id references auth.users, so there is no PostgREST
+    // relationship to profiles; fetch reviewer names in a second query.
+    const customerIds = [...new Set((reviews ?? []).map((r) => r.customer_id).filter(Boolean))];
+    let nameById: Record<string, string | null> = {};
+    if (customerIds.length > 0) {
+      const { data: reviewers } = await supabase
+        .from("profiles")
+        .select("id, full_name")
+        .in("id", customerIds as string[]);
+      nameById = Object.fromEntries((reviewers ?? []).map((p) => [p.id, p.full_name]));
+    }
+
+    const reviewsWithNames = (reviews ?? []).map((r) => ({
+      ...r,
+      profiles: { full_name: r.customer_id ? nameById[r.customer_id] ?? null : null },
+    }));
+
+    return { listing, availability: availability ?? [], reviews: reviewsWithNames };
   });
 
 export const getHomeData = createServerFn({ method: "GET" })
