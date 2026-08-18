@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { createClient } from "@supabase/supabase-js";
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import type { Database } from "@/integrations/supabase/types";
 
 const requestSchema = z.object({
@@ -10,10 +11,13 @@ const requestSchema = z.object({
   visitDate: z.string().optional(),
   visitTime: z.string().optional(),
   message: z.string().max(1000).optional(),
+  guestCount: z.coerce.number().int().positive().optional(),
   customerName: z.string().min(1).max(100),
   customerPhone: z.string().min(10).max(20),
   customerPhoneConfirm: z.string().min(10).max(20),
 });
+
+type RequestInput = z.infer<typeof requestSchema>;
 
 function publicClient() {
   return createClient<Database>(
@@ -23,6 +27,23 @@ function publicClient() {
   );
 }
 
+function buildRow(data: RequestInput, listing: { id: string; vendor_id: string }, customerId: string | null) {
+  return {
+    listing_id: listing.id,
+    vendor_id: listing.vendor_id,
+    customer_id: customerId,
+    kind: data.kind,
+    event_date: data.eventDate,
+    visit_date: data.visitDate || null,
+    visit_time: data.visitTime || null,
+    message: data.message || null,
+    guest_count: data.guestCount ?? null,
+    consent_at: new Date().toISOString(),
+    phone_snapshot: data.customerPhone,
+  };
+}
+
+/** Guest submission (no session). */
 export const submitRequest = createServerFn({ method: "POST" })
   .inputValidator((data) => requestSchema.parse(data))
   .handler(async ({ data }) => {
@@ -34,26 +55,45 @@ export const submitRequest = createServerFn({ method: "POST" })
 
     const { data: listing, error: listingError } = await supabase
       .from("listings")
-      .select("id, title, vendor_id")
+      .select("id, vendor_id")
       .eq("id", data.listingId)
       .eq("status", "live")
       .single();
 
-    if (listingError || !listing) {
-      throw new Error("Listing not found");
+    if (listingError || !listing) throw new Error("Listing not found");
+
+    const { error } = await supabase.from("requests").insert(buildRow(data, listing, null));
+    if (error) throw error;
+    return { ok: true };
+  });
+
+/** Signed-in submission — links the request to the customer and saves their phone on the profile. */
+export const submitRequestAsUser = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data) => requestSchema.parse(data))
+  .handler(async ({ data, context }) => {
+    if (data.customerPhone !== data.customerPhoneConfirm) {
+      throw new Error("Phone numbers do not match");
     }
 
-    const { error } = await supabase.from("requests").insert({
-      listing_id: listing.id,
-      vendor_id: listing.vendor_id,
-      kind: data.kind,
-      event_date: data.eventDate,
-      visit_date: data.visitDate || null,
-      visit_time: data.visitTime || null,
-      message: data.message || null,
-      phone_snapshot: data.customerPhone,
-    });
+    const { data: listing, error: listingError } = await context.supabase
+      .from("listings")
+      .select("id, vendor_id")
+      .eq("id", data.listingId)
+      .eq("status", "live")
+      .single();
 
+    if (listingError || !listing) throw new Error("Listing not found");
+
+    const { error } = await context.supabase
+      .from("requests")
+      .insert(buildRow(data, listing, context.userId));
     if (error) throw error;
+
+    await context.supabase
+      .from("profiles")
+      .update({ phone: data.customerPhone, full_name: data.customerName })
+      .eq("id", context.userId);
+
     return { ok: true };
   });
