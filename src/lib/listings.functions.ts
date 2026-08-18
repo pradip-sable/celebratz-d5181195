@@ -41,6 +41,10 @@ export const searchListings = createServerFn({ method: "GET" })
   .handler(async ({ data }) => {
     const supabase = publicClient();
 
+    const eventTypeJoin = data.eventType
+      ? "listing_event_types!inner(event_types!inner(slug))"
+      : "listing_event_types(event_types(slug))";
+
     let query = supabase
       .from("listings")
       .select(`
@@ -57,7 +61,8 @@ export const searchListings = createServerFn({ method: "GET" })
         availability_updated_at,
         categories!inner(name, slug, icon),
         areas!inner(name, slug),
-        listing_media(storage_path, type, position)
+        listing_media(storage_path, type, position),
+        ${eventTypeJoin}
       `)
       .eq("status", "live")
       .order("rating_avg", { ascending: false });
@@ -71,6 +76,7 @@ export const searchListings = createServerFn({ method: "GET" })
     if (data.eventType) {
       query = query.eq("listing_event_types.event_types.slug", data.eventType);
     }
+
     if (data.minPrice) {
       query = query.gte("price_from", data.minPrice);
     }
