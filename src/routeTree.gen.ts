@@ -14,6 +14,7 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as ContactRouteImport } from './routes/contact'
+import { Route as ForVendorsRouteImport } from './routes/for-vendors'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as RequestRouteImport } from './routes/request'
 import { Route as SearchRouteImport } from './routes/search'
@@ -51,6 +52,11 @@ const AuthRoute = AuthRouteImport.update({
 const ContactRoute = ContactRouteImport.update({
   id: '/contact',
   path: '/contact',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ForVendorsRoute = ForVendorsRouteImport.update({
+  id: '/for-vendors',
+  path: '/for-vendors',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PrivacyRoute = PrivacyRouteImport.update({
@@ -132,6 +138,7 @@ export interface FileRoutesByFullPath {
   '/about': typeof AboutRoute
   '/auth': typeof AuthRoute
   '/contact': typeof ContactRoute
+  '/for-vendors': typeof ForVendorsRoute
   '/privacy': typeof PrivacyRoute
   '/request': typeof RequestRoute
   '/search': typeof SearchRoute
@@ -152,6 +159,7 @@ export interface FileRoutesByTo {
   '/about': typeof AboutRoute
   '/auth': typeof AuthRoute
   '/contact': typeof ContactRoute
+  '/for-vendors': typeof ForVendorsRoute
   '/privacy': typeof PrivacyRoute
   '/request': typeof RequestRoute
   '/search': typeof SearchRoute
@@ -174,6 +182,7 @@ export interface FileRoutesById {
   '/about': typeof AboutRoute
   '/auth': typeof AuthRoute
   '/contact': typeof ContactRoute
+  '/for-vendors': typeof ForVendorsRoute
   '/privacy': typeof PrivacyRoute
   '/request': typeof RequestRoute
   '/search': typeof SearchRoute
@@ -196,6 +205,7 @@ export interface FileRouteTypes {
     | '/about'
     | '/auth'
     | '/contact'
+    | '/for-vendors'
     | '/privacy'
     | '/request'
     | '/search'
@@ -216,6 +226,7 @@ export interface FileRouteTypes {
     | '/about'
     | '/auth'
     | '/contact'
+    | '/for-vendors'
     | '/privacy'
     | '/request'
     | '/search'
@@ -237,6 +248,7 @@ export interface FileRouteTypes {
     | '/about'
     | '/auth'
     | '/contact'
+    | '/for-vendors'
     | '/privacy'
     | '/request'
     | '/search'
@@ -259,6 +271,7 @@ export interface RootRouteChildren {
   AboutRoute: typeof AboutRoute
   AuthRoute: typeof AuthRoute
   ContactRoute: typeof ContactRoute
+  ForVendorsRoute: typeof ForVendorsRoute
   PrivacyRoute: typeof PrivacyRoute
   RequestRoute: typeof RequestRoute
   SearchRoute: typeof SearchRoute
@@ -303,6 +316,13 @@ declare module '@tanstack/react-router' {
       path: '/contact'
       fullPath: '/contact'
       preLoaderRoute: typeof ContactRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/for-vendors': {
+      id: '/for-vendors'
+      path: '/for-vendors'
+      fullPath: '/for-vendors'
+      preLoaderRoute: typeof ForVendorsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/privacy': {
@@ -436,6 +456,7 @@ const rootRouteChildren: RootRouteChildren = {
   AboutRoute: AboutRoute,
   AuthRoute: AuthRoute,
   ContactRoute: ContactRoute,
+  ForVendorsRoute: ForVendorsRoute,
   PrivacyRoute: PrivacyRoute,
   RequestRoute: RequestRoute,
   SearchRoute: SearchRoute,
