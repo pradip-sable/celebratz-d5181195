@@ -202,19 +202,22 @@ function ListingPage() {
             <p className="text-sm text-muted-foreground">/ {listing.price_unit.replace("_", " ")}</p>
 
             <div className="mt-5 space-y-3">
-              <a
-                href={`/request?listing=${listing.slug}`}
+              <Link
+                to="/request"
+                search={{ listing: listing.id, kind: "booking_request" }}
                 className="block w-full rounded-xl bg-primary px-4 py-3 text-center text-sm font-semibold text-primary-foreground hover:bg-primary/90"
               >
                 Request to Book
-              </a>
-              <a
-                href={`/request?listing=${listing.slug}&kind=enquiry`}
+              </Link>
+              <Link
+                to="/request"
+                search={{ listing: listing.id, kind: "enquiry" }}
                 className="block w-full rounded-xl border border-primary px-4 py-3 text-center text-sm font-semibold text-primary hover:bg-primary/5"
               >
                 Enquire
-              </a>
+              </Link>
             </div>
+
 
             <div className="mt-6 border-t border-border/40 pt-5">
               <h3 className="font-medium">Vendor</h3>
