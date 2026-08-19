@@ -26,6 +26,7 @@ import { Route as AuthenticatedWishlistRouteImport } from './routes/_authenticat
 import { Route as CategorySlugRouteImport } from './routes/category.$slug'
 import { Route as EventsSlugRouteImport } from './routes/events.$slug'
 import { Route as ListingSlugRouteImport } from './routes/listing.$slug'
+import { Route as AuthenticatedAccountProfileRouteImport } from './routes/_authenticated/account.profile'
 import { Route as AuthenticatedVendorIndexRouteImport } from './routes/_authenticated/vendor/index'
 import { Route as AuthenticatedVendorCalendarListingIdRouteImport } from './routes/_authenticated/vendor/calendar.$listingId'
 import { Route as AuthenticatedVendorListingsNewRouteImport } from './routes/_authenticated/vendor/listings.new'
@@ -114,6 +115,12 @@ const ListingSlugRoute = ListingSlugRouteImport.update({
   path: '/listing/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedAccountProfileRoute =
+  AuthenticatedAccountProfileRouteImport.update({
+    id: '/account/profile',
+    path: '/account/profile',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedVendorIndexRoute =
   AuthenticatedVendorIndexRouteImport.update({
     id: '/vendor/',
@@ -150,6 +157,7 @@ export interface FileRoutesByFullPath {
   '/category/$slug': typeof CategorySlugRoute
   '/events/$slug': typeof EventsSlugRoute
   '/listing/$slug': typeof ListingSlugRoute
+  '/account/profile': typeof AuthenticatedAccountProfileRoute
   '/vendor/': typeof AuthenticatedVendorIndexRoute
   '/vendor/calendar/$listingId': typeof AuthenticatedVendorCalendarListingIdRoute
   '/vendor/listings/new': typeof AuthenticatedVendorListingsNewRoute
@@ -171,6 +179,7 @@ export interface FileRoutesByTo {
   '/category/$slug': typeof CategorySlugRoute
   '/events/$slug': typeof EventsSlugRoute
   '/listing/$slug': typeof ListingSlugRoute
+  '/account/profile': typeof AuthenticatedAccountProfileRoute
   '/vendor': typeof AuthenticatedVendorIndexRoute
   '/vendor/calendar/$listingId': typeof AuthenticatedVendorCalendarListingIdRoute
   '/vendor/listings/new': typeof AuthenticatedVendorListingsNewRoute
@@ -194,6 +203,7 @@ export interface FileRoutesById {
   '/category/$slug': typeof CategorySlugRoute
   '/events/$slug': typeof EventsSlugRoute
   '/listing/$slug': typeof ListingSlugRoute
+  '/_authenticated/account/profile': typeof AuthenticatedAccountProfileRoute
   '/_authenticated/vendor/': typeof AuthenticatedVendorIndexRoute
   '/_authenticated/vendor/calendar/$listingId': typeof AuthenticatedVendorCalendarListingIdRoute
   '/_authenticated/vendor/listings/new': typeof AuthenticatedVendorListingsNewRoute
@@ -217,6 +227,7 @@ export interface FileRouteTypes {
     | '/category/$slug'
     | '/events/$slug'
     | '/listing/$slug'
+    | '/account/profile'
     | '/vendor/'
     | '/vendor/calendar/$listingId'
     | '/vendor/listings/new'
@@ -238,6 +249,7 @@ export interface FileRouteTypes {
     | '/category/$slug'
     | '/events/$slug'
     | '/listing/$slug'
+    | '/account/profile'
     | '/vendor'
     | '/vendor/calendar/$listingId'
     | '/vendor/listings/new'
@@ -260,6 +272,7 @@ export interface FileRouteTypes {
     | '/category/$slug'
     | '/events/$slug'
     | '/listing/$slug'
+    | '/_authenticated/account/profile'
     | '/_authenticated/vendor/'
     | '/_authenticated/vendor/calendar/$listingId'
     | '/_authenticated/vendor/listings/new'
@@ -402,6 +415,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ListingSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/account/profile': {
+      id: '/_authenticated/account/profile'
+      path: '/account/profile'
+      fullPath: '/account/profile'
+      preLoaderRoute: typeof AuthenticatedAccountProfileRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/vendor/': {
       id: '/_authenticated/vendor/'
       path: '/vendor'
@@ -431,6 +451,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedReviewsRoute: typeof AuthenticatedReviewsRoute
   AuthenticatedWishlistRoute: typeof AuthenticatedWishlistRoute
+  AuthenticatedAccountProfileRoute: typeof AuthenticatedAccountProfileRoute
   AuthenticatedVendorIndexRoute: typeof AuthenticatedVendorIndexRoute
   AuthenticatedVendorCalendarListingIdRoute: typeof AuthenticatedVendorCalendarListingIdRoute
   AuthenticatedVendorListingsNewRoute: typeof AuthenticatedVendorListingsNewRoute
@@ -441,6 +462,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedReviewsRoute: AuthenticatedReviewsRoute,
   AuthenticatedWishlistRoute: AuthenticatedWishlistRoute,
+  AuthenticatedAccountProfileRoute: AuthenticatedAccountProfileRoute,
   AuthenticatedVendorIndexRoute: AuthenticatedVendorIndexRoute,
   AuthenticatedVendorCalendarListingIdRoute:
     AuthenticatedVendorCalendarListingIdRoute,
