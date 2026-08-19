@@ -8,7 +8,10 @@ import { Mail, Lock, User, Loader2 } from "lucide-react";
 
 const authSearchSchema = z.object({
   returnTo: z.string().optional(),
+  mode: z.enum(["signin", "signup"]).optional(),
+  type: z.enum(["customer", "vendor"]).optional(),
 });
+
 
 export const Route = createFileRoute("/auth")({
   component: AuthPage,
