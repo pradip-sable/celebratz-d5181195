@@ -23,6 +23,7 @@ import { Route as AuthenticatedDashboardRouteImport } from './routes/_authentica
 import { Route as AuthenticatedReviewsRouteImport } from './routes/_authenticated/reviews'
 import { Route as AuthenticatedWishlistRouteImport } from './routes/_authenticated/wishlist'
 import { Route as CategorySlugRouteImport } from './routes/category.$slug'
+import { Route as EventsSlugRouteImport } from './routes/events.$slug'
 import { Route as ListingSlugRouteImport } from './routes/listing.$slug'
 import { Route as AuthenticatedVendorIndexRouteImport } from './routes/_authenticated/vendor/index'
 import { Route as AuthenticatedVendorCalendarListingIdRouteImport } from './routes/_authenticated/vendor/calendar.$listingId'
@@ -97,6 +98,11 @@ const CategorySlugRoute = CategorySlugRouteImport.update({
   path: '/category/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const EventsSlugRoute = EventsSlugRouteImport.update({
+  id: '/events/$slug',
+  path: '/events/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ListingSlugRoute = ListingSlugRouteImport.update({
   id: '/listing/$slug',
   path: '/listing/$slug',
@@ -135,6 +141,7 @@ export interface FileRoutesByFullPath {
   '/reviews': typeof AuthenticatedReviewsRoute
   '/wishlist': typeof AuthenticatedWishlistRoute
   '/category/$slug': typeof CategorySlugRoute
+  '/events/$slug': typeof EventsSlugRoute
   '/listing/$slug': typeof ListingSlugRoute
   '/vendor/': typeof AuthenticatedVendorIndexRoute
   '/vendor/calendar/$listingId': typeof AuthenticatedVendorCalendarListingIdRoute
@@ -154,6 +161,7 @@ export interface FileRoutesByTo {
   '/reviews': typeof AuthenticatedReviewsRoute
   '/wishlist': typeof AuthenticatedWishlistRoute
   '/category/$slug': typeof CategorySlugRoute
+  '/events/$slug': typeof EventsSlugRoute
   '/listing/$slug': typeof ListingSlugRoute
   '/vendor': typeof AuthenticatedVendorIndexRoute
   '/vendor/calendar/$listingId': typeof AuthenticatedVendorCalendarListingIdRoute
@@ -175,6 +183,7 @@ export interface FileRoutesById {
   '/_authenticated/reviews': typeof AuthenticatedReviewsRoute
   '/_authenticated/wishlist': typeof AuthenticatedWishlistRoute
   '/category/$slug': typeof CategorySlugRoute
+  '/events/$slug': typeof EventsSlugRoute
   '/listing/$slug': typeof ListingSlugRoute
   '/_authenticated/vendor/': typeof AuthenticatedVendorIndexRoute
   '/_authenticated/vendor/calendar/$listingId': typeof AuthenticatedVendorCalendarListingIdRoute
@@ -196,6 +205,7 @@ export interface FileRouteTypes {
     | '/reviews'
     | '/wishlist'
     | '/category/$slug'
+    | '/events/$slug'
     | '/listing/$slug'
     | '/vendor/'
     | '/vendor/calendar/$listingId'
@@ -215,6 +225,7 @@ export interface FileRouteTypes {
     | '/reviews'
     | '/wishlist'
     | '/category/$slug'
+    | '/events/$slug'
     | '/listing/$slug'
     | '/vendor'
     | '/vendor/calendar/$listingId'
@@ -235,6 +246,7 @@ export interface FileRouteTypes {
     | '/_authenticated/reviews'
     | '/_authenticated/wishlist'
     | '/category/$slug'
+    | '/events/$slug'
     | '/listing/$slug'
     | '/_authenticated/vendor/'
     | '/_authenticated/vendor/calendar/$listingId'
@@ -252,6 +264,7 @@ export interface RootRouteChildren {
   SearchRoute: typeof SearchRoute
   TermsRoute: typeof TermsRoute
   CategorySlugRoute: typeof CategorySlugRoute
+  EventsSlugRoute: typeof EventsSlugRoute
   ListingSlugRoute: typeof ListingSlugRoute
 }
 
@@ -355,6 +368,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CategorySlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/events/$slug': {
+      id: '/events/$slug'
+      path: '/events/$slug'
+      fullPath: '/events/$slug'
+      preLoaderRoute: typeof EventsSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/listing/$slug': {
       id: '/listing/$slug'
       path: '/listing/$slug'
@@ -421,6 +441,7 @@ const rootRouteChildren: RootRouteChildren = {
   SearchRoute: SearchRoute,
   TermsRoute: TermsRoute,
   CategorySlugRoute: CategorySlugRoute,
+  EventsSlugRoute: EventsSlugRoute,
   ListingSlugRoute: ListingSlugRoute,
 }
 export const routeTree = rootRouteImport
