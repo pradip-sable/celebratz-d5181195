@@ -1,14 +1,15 @@
-import { createFileRoute, useSearch } from "@tanstack/react-router";
-import { useState } from "react";
+import { createFileRoute, Link, useSearch } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { Calendar, Phone, User, MessageSquare, Check, AlertCircle } from "lucide-react";
 import { z } from "zod";
-import { submitRequest } from "@/lib/requests.functions";
+import { supabase } from "@/integrations/supabase/client";
+import { submitRequest, submitRequestAsUser } from "@/lib/requests.functions";
 import { Button } from "@/components/ui/button";
 
 const requestSchema = z.object({
   listing: z.string().optional(),
-  kind: z.enum(["booking", "enquiry"]).optional(),
+  kind: z.enum(["booking_request", "enquiry"]).optional(),
 });
 
 export const Route = createFileRoute("/request")({
@@ -32,7 +33,7 @@ function RequestPage() {
   const [error, setError] = useState<string | null>(null);
   const [form, setForm] = useState({
     listingId: search.listing ?? "",
-    kind: search.kind ?? "booking",
+    kind: search.kind ?? "booking_request",
     eventDate: "",
     visitDate: "",
     visitTime: "",
@@ -43,7 +44,33 @@ function RequestPage() {
     consent: false,
   });
 
-  const sendRequest = useServerFn(submitRequest);
+  const sendGuestRequest = useServerFn(submitRequest);
+  const sendUserRequest = useServerFn(submitRequestAsUser);
+  const [signedIn, setSignedIn] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    let active = true;
+    supabase.auth.getSession().then(async ({ data }) => {
+      if (!active) return;
+      setSignedIn(Boolean(data.session));
+      if (!data.session) return;
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("full_name, phone")
+        .eq("id", data.session.user.id)
+        .maybeSingle();
+      if (!active || !profile) return;
+      setForm((f) => ({
+        ...f,
+        customerName: f.customerName || profile.full_name || "",
+        customerPhone: f.customerPhone || profile.phone || "",
+        customerPhoneConfirm: f.customerPhoneConfirm || profile.phone || "",
+      }));
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -63,10 +90,11 @@ function RequestPage() {
     }
 
     try {
-      await sendRequest({
+      const send = signedIn ? sendUserRequest : sendGuestRequest;
+      await send({
         data: {
           listingId: form.listingId,
-          kind: form.kind as "booking" | "enquiry",
+          kind: form.kind as "booking_request" | "enquiry",
           eventDate: form.eventDate,
           visitDate: form.visitDate,
           visitTime: form.visitTime,
@@ -105,7 +133,7 @@ function RequestPage() {
         <p className="mt-2 text-sm text-muted-foreground">
           The vendor will contact you soon to discuss details. You can track your requests in your dashboard.
         </p>
-        <a href="/dashboard/bookings" className="mt-6 inline-block rounded-xl bg-primary px-6 py-2 text-sm font-semibold text-primary-foreground">
+        <a href="/dashboard" className="mt-6 inline-block rounded-xl bg-primary px-6 py-2 text-sm font-semibold text-primary-foreground">
           My requests
         </a>
       </div>
@@ -134,8 +162,8 @@ function RequestPage() {
           <div className="grid grid-cols-2 gap-3">
             <button
               type="button"
-              onClick={() => setForm((f) => ({ ...f, kind: "booking" }))}
-              className={`rounded-xl border px-4 py-2.5 text-sm font-medium ${form.kind === "booking" ? "border-primary bg-primary/10 text-primary" : "border-border"}`}
+              onClick={() => setForm((f) => ({ ...f, kind: "booking_request" }))}
+              className={`rounded-xl border px-4 py-2.5 text-sm font-medium ${form.kind === "booking_request" ? "border-primary bg-primary/10 text-primary" : "border-border"}`}
             >
               Request to Book
             </button>
@@ -183,6 +211,22 @@ function RequestPage() {
             />
           </div>
         </div>
+
+        {signedIn === false && (
+          <div className="rounded-xl border border-border/60 bg-muted/30 p-3 text-sm">
+            <p className="font-medium">Continuing as a guest</p>
+            <p className="mt-1 text-muted-foreground">
+              <Link
+                to="/auth"
+                search={{ returnTo: `/request?listing=${form.listingId}&kind=${form.kind}` }}
+                className="font-medium text-primary"
+              >
+                Sign in
+              </Link>{" "}
+              to track this request in your dashboard and reuse your details next time.
+            </p>
+          </div>
+        )}
 
         <div>
           <label className="mb-1.5 block text-sm font-medium">Your name</label>

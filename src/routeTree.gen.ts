@@ -14,6 +14,7 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as ContactRouteImport } from './routes/contact'
+import { Route as ForVendorsRouteImport } from './routes/for-vendors'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as RequestRouteImport } from './routes/request'
 import { Route as SearchRouteImport } from './routes/search'
@@ -22,7 +23,10 @@ import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedReviewsRouteImport } from './routes/_authenticated/reviews'
 import { Route as AuthenticatedWishlistRouteImport } from './routes/_authenticated/wishlist'
+import { Route as CategorySlugRouteImport } from './routes/category.$slug'
+import { Route as EventsSlugRouteImport } from './routes/events.$slug'
 import { Route as ListingSlugRouteImport } from './routes/listing.$slug'
+import { Route as AuthenticatedAccountProfileRouteImport } from './routes/_authenticated/account.profile'
 import { Route as AuthenticatedVendorIndexRouteImport } from './routes/_authenticated/vendor/index'
 import { Route as AuthenticatedVendorCalendarListingIdRouteImport } from './routes/_authenticated/vendor/calendar.$listingId'
 import { Route as AuthenticatedVendorListingsNewRouteImport } from './routes/_authenticated/vendor/listings.new'
@@ -49,6 +53,11 @@ const AuthRoute = AuthRouteImport.update({
 const ContactRoute = ContactRouteImport.update({
   id: '/contact',
   path: '/contact',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ForVendorsRoute = ForVendorsRouteImport.update({
+  id: '/for-vendors',
+  path: '/for-vendors',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PrivacyRoute = PrivacyRouteImport.update({
@@ -91,11 +100,27 @@ const AuthenticatedWishlistRoute = AuthenticatedWishlistRouteImport.update({
   path: '/wishlist',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const CategorySlugRoute = CategorySlugRouteImport.update({
+  id: '/category/$slug',
+  path: '/category/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EventsSlugRoute = EventsSlugRouteImport.update({
+  id: '/events/$slug',
+  path: '/events/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ListingSlugRoute = ListingSlugRouteImport.update({
   id: '/listing/$slug',
   path: '/listing/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedAccountProfileRoute =
+  AuthenticatedAccountProfileRouteImport.update({
+    id: '/account/profile',
+    path: '/account/profile',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedVendorIndexRoute =
   AuthenticatedVendorIndexRouteImport.update({
     id: '/vendor/',
@@ -120,6 +145,7 @@ export interface FileRoutesByFullPath {
   '/about': typeof AboutRoute
   '/auth': typeof AuthRoute
   '/contact': typeof ContactRoute
+  '/for-vendors': typeof ForVendorsRoute
   '/privacy': typeof PrivacyRoute
   '/request': typeof RequestRoute
   '/search': typeof SearchRoute
@@ -128,7 +154,10 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/reviews': typeof AuthenticatedReviewsRoute
   '/wishlist': typeof AuthenticatedWishlistRoute
+  '/category/$slug': typeof CategorySlugRoute
+  '/events/$slug': typeof EventsSlugRoute
   '/listing/$slug': typeof ListingSlugRoute
+  '/account/profile': typeof AuthenticatedAccountProfileRoute
   '/vendor/': typeof AuthenticatedVendorIndexRoute
   '/vendor/calendar/$listingId': typeof AuthenticatedVendorCalendarListingIdRoute
   '/vendor/listings/new': typeof AuthenticatedVendorListingsNewRoute
@@ -138,6 +167,7 @@ export interface FileRoutesByTo {
   '/about': typeof AboutRoute
   '/auth': typeof AuthRoute
   '/contact': typeof ContactRoute
+  '/for-vendors': typeof ForVendorsRoute
   '/privacy': typeof PrivacyRoute
   '/request': typeof RequestRoute
   '/search': typeof SearchRoute
@@ -146,7 +176,10 @@ export interface FileRoutesByTo {
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/reviews': typeof AuthenticatedReviewsRoute
   '/wishlist': typeof AuthenticatedWishlistRoute
+  '/category/$slug': typeof CategorySlugRoute
+  '/events/$slug': typeof EventsSlugRoute
   '/listing/$slug': typeof ListingSlugRoute
+  '/account/profile': typeof AuthenticatedAccountProfileRoute
   '/vendor': typeof AuthenticatedVendorIndexRoute
   '/vendor/calendar/$listingId': typeof AuthenticatedVendorCalendarListingIdRoute
   '/vendor/listings/new': typeof AuthenticatedVendorListingsNewRoute
@@ -158,6 +191,7 @@ export interface FileRoutesById {
   '/about': typeof AboutRoute
   '/auth': typeof AuthRoute
   '/contact': typeof ContactRoute
+  '/for-vendors': typeof ForVendorsRoute
   '/privacy': typeof PrivacyRoute
   '/request': typeof RequestRoute
   '/search': typeof SearchRoute
@@ -166,7 +200,10 @@ export interface FileRoutesById {
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/reviews': typeof AuthenticatedReviewsRoute
   '/_authenticated/wishlist': typeof AuthenticatedWishlistRoute
+  '/category/$slug': typeof CategorySlugRoute
+  '/events/$slug': typeof EventsSlugRoute
   '/listing/$slug': typeof ListingSlugRoute
+  '/_authenticated/account/profile': typeof AuthenticatedAccountProfileRoute
   '/_authenticated/vendor/': typeof AuthenticatedVendorIndexRoute
   '/_authenticated/vendor/calendar/$listingId': typeof AuthenticatedVendorCalendarListingIdRoute
   '/_authenticated/vendor/listings/new': typeof AuthenticatedVendorListingsNewRoute
@@ -178,6 +215,7 @@ export interface FileRouteTypes {
     | '/about'
     | '/auth'
     | '/contact'
+    | '/for-vendors'
     | '/privacy'
     | '/request'
     | '/search'
@@ -186,7 +224,10 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/reviews'
     | '/wishlist'
+    | '/category/$slug'
+    | '/events/$slug'
     | '/listing/$slug'
+    | '/account/profile'
     | '/vendor/'
     | '/vendor/calendar/$listingId'
     | '/vendor/listings/new'
@@ -196,6 +237,7 @@ export interface FileRouteTypes {
     | '/about'
     | '/auth'
     | '/contact'
+    | '/for-vendors'
     | '/privacy'
     | '/request'
     | '/search'
@@ -204,7 +246,10 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/reviews'
     | '/wishlist'
+    | '/category/$slug'
+    | '/events/$slug'
     | '/listing/$slug'
+    | '/account/profile'
     | '/vendor'
     | '/vendor/calendar/$listingId'
     | '/vendor/listings/new'
@@ -215,6 +260,7 @@ export interface FileRouteTypes {
     | '/about'
     | '/auth'
     | '/contact'
+    | '/for-vendors'
     | '/privacy'
     | '/request'
     | '/search'
@@ -223,7 +269,10 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard'
     | '/_authenticated/reviews'
     | '/_authenticated/wishlist'
+    | '/category/$slug'
+    | '/events/$slug'
     | '/listing/$slug'
+    | '/_authenticated/account/profile'
     | '/_authenticated/vendor/'
     | '/_authenticated/vendor/calendar/$listingId'
     | '/_authenticated/vendor/listings/new'
@@ -235,10 +284,13 @@ export interface RootRouteChildren {
   AboutRoute: typeof AboutRoute
   AuthRoute: typeof AuthRoute
   ContactRoute: typeof ContactRoute
+  ForVendorsRoute: typeof ForVendorsRoute
   PrivacyRoute: typeof PrivacyRoute
   RequestRoute: typeof RequestRoute
   SearchRoute: typeof SearchRoute
   TermsRoute: typeof TermsRoute
+  CategorySlugRoute: typeof CategorySlugRoute
+  EventsSlugRoute: typeof EventsSlugRoute
   ListingSlugRoute: typeof ListingSlugRoute
 }
 
@@ -277,6 +329,13 @@ declare module '@tanstack/react-router' {
       path: '/contact'
       fullPath: '/contact'
       preLoaderRoute: typeof ContactRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/for-vendors': {
+      id: '/for-vendors'
+      path: '/for-vendors'
+      fullPath: '/for-vendors'
+      preLoaderRoute: typeof ForVendorsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/privacy': {
@@ -335,12 +394,33 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedWishlistRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/category/$slug': {
+      id: '/category/$slug'
+      path: '/category/$slug'
+      fullPath: '/category/$slug'
+      preLoaderRoute: typeof CategorySlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/events/$slug': {
+      id: '/events/$slug'
+      path: '/events/$slug'
+      fullPath: '/events/$slug'
+      preLoaderRoute: typeof EventsSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/listing/$slug': {
       id: '/listing/$slug'
       path: '/listing/$slug'
       fullPath: '/listing/$slug'
       preLoaderRoute: typeof ListingSlugRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/account/profile': {
+      id: '/_authenticated/account/profile'
+      path: '/account/profile'
+      fullPath: '/account/profile'
+      preLoaderRoute: typeof AuthenticatedAccountProfileRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/vendor/': {
       id: '/_authenticated/vendor/'
@@ -371,6 +451,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedReviewsRoute: typeof AuthenticatedReviewsRoute
   AuthenticatedWishlistRoute: typeof AuthenticatedWishlistRoute
+  AuthenticatedAccountProfileRoute: typeof AuthenticatedAccountProfileRoute
   AuthenticatedVendorIndexRoute: typeof AuthenticatedVendorIndexRoute
   AuthenticatedVendorCalendarListingIdRoute: typeof AuthenticatedVendorCalendarListingIdRoute
   AuthenticatedVendorListingsNewRoute: typeof AuthenticatedVendorListingsNewRoute
@@ -381,6 +462,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedReviewsRoute: AuthenticatedReviewsRoute,
   AuthenticatedWishlistRoute: AuthenticatedWishlistRoute,
+  AuthenticatedAccountProfileRoute: AuthenticatedAccountProfileRoute,
   AuthenticatedVendorIndexRoute: AuthenticatedVendorIndexRoute,
   AuthenticatedVendorCalendarListingIdRoute:
     AuthenticatedVendorCalendarListingIdRoute,
@@ -396,10 +478,13 @@ const rootRouteChildren: RootRouteChildren = {
   AboutRoute: AboutRoute,
   AuthRoute: AuthRoute,
   ContactRoute: ContactRoute,
+  ForVendorsRoute: ForVendorsRoute,
   PrivacyRoute: PrivacyRoute,
   RequestRoute: RequestRoute,
   SearchRoute: SearchRoute,
   TermsRoute: TermsRoute,
+  CategorySlugRoute: CategorySlugRoute,
+  EventsSlugRoute: EventsSlugRoute,
   ListingSlugRoute: ListingSlugRoute,
 }
 export const routeTree = rootRouteImport

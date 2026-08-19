@@ -8,7 +8,10 @@ import { Mail, Lock, User, Loader2 } from "lucide-react";
 
 const authSearchSchema = z.object({
   returnTo: z.string().optional(),
+  mode: z.enum(["signin", "signup"]).optional(),
+  type: z.enum(["customer", "vendor"]).optional(),
 });
+
 
 export const Route = createFileRoute("/auth")({
   component: AuthPage,
@@ -28,8 +31,9 @@ export const Route = createFileRoute("/auth")({
 function AuthPage() {
   const search = useSearch({ from: "/auth" });
   const returnTo = typeof search.returnTo === "string" ? search.returnTo : "/";
-  const [mode, setMode] = useState<"signin" | "signup">("signin");
-  const [accountType, setAccountType] = useState<"customer" | "vendor">("customer");
+  const [mode, setMode] = useState<"signin" | "signup">(search.mode ?? "signin");
+  const [accountType, setAccountType] = useState<"customer" | "vendor">(search.type ?? "customer");
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
