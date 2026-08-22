@@ -85,9 +85,10 @@ export function Layout({ children }: { children: ReactNode }) {
               <Link to="/terms" className="hover:text-foreground">
                 Terms
               </Link>
-              <Link to="/vendor" className="hover:text-foreground">
+              <Link to="/for-vendors" className="hover:text-foreground">
                 List your business
               </Link>
+
             </div>
           </div>
           <p className="mt-4">© {new Date().getFullYear()} Celebratz. Celebrations made simple in Pune.</p>
@@ -101,7 +102,7 @@ export function Layout({ children }: { children: ReactNode }) {
             <MobileNavItem to="/search" icon={Search} label="Search" />
             <MobileNavItem to="/dashboard" icon={CalendarDays} label="Bookings" />
             <MobileNavItem to="/wishlist" icon={Heart} label="Wishlist" />
-            <MobileNavItem to="/reviews" icon={User} label="Reviews" />
+            <MobileNavItem to="/account/profile" icon={User} label="Profile" />
           </div>
         </nav>
       )}

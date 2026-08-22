@@ -87,16 +87,17 @@ function Home() {
         <h2 className="font-serif text-xl font-semibold md:text-2xl">Browse by category</h2>
         <div className="mt-5 grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-6">
           {data.categories.map((cat) => (
-            <a
+            <Link
               key={cat.slug}
-              href={`/search?category=${cat.slug}`}
+              to="/category/$slug"
+              params={{ slug: cat.slug }}
               className="group rounded-2xl border border-border/60 bg-card p-4 text-center shadow-sm transition hover:border-primary/30 hover:shadow-md"
             >
               <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-2xl group-hover:bg-primary/20">
                 {cat.icon}
               </div>
               <p className="mt-3 text-sm font-medium leading-tight">{cat.name}</p>
-            </a>
+            </Link>
           ))}
         </div>
       </section>
@@ -106,17 +107,19 @@ function Home() {
         <h2 className="font-serif text-xl font-semibold md:text-2xl">Planning for</h2>
         <div className="mt-4 flex flex-wrap gap-2">
           {data.eventTypes.map((et) => (
-            <a
+            <Link
               key={et.slug}
-              href={`/search?eventType=${et.slug}`}
+              to="/events/$slug"
+              params={{ slug: et.slug }}
               className="inline-flex items-center gap-1.5 rounded-full border border-border/60 bg-card px-4 py-2 text-sm font-medium hover:border-primary/30 hover:bg-primary/5"
             >
               <PartyPopper className="h-3.5 w-3.5 text-primary" />
               {et.name}
-            </a>
+            </Link>
           ))}
         </div>
       </section>
+
 
       {/* Featured */}
       <section className="mx-auto max-w-5xl px-4 pb-12">
