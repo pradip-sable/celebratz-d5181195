@@ -85,9 +85,10 @@ export function Layout({ children }: { children: ReactNode }) {
               <Link to="/terms" className="hover:text-foreground">
                 Terms
               </Link>
-              <Link to="/vendor" className="hover:text-foreground">
+              <Link to="/for-vendors" className="hover:text-foreground">
                 List your business
               </Link>
+
             </div>
           </div>
           <p className="mt-4">© {new Date().getFullYear()} Celebratz. Celebrations made simple in Pune.</p>
