@@ -49,11 +49,20 @@ function VendorHome() {
           <h1 className="font-serif text-2xl font-semibold">{vendor.business_name}</h1>
           <p className="mt-1 text-sm capitalize text-muted-foreground">Account status: {vendor.status}</p>
         </div>
-        <Button asChild className="rounded-xl">
-          <Link to="/vendor/listings/new">
-            <Plus className="mr-2 h-4 w-4" /> New listing
-          </Link>
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <Button asChild variant="outline" className="rounded-xl">
+            <Link to="/vendor/profile">Business profile</Link>
+          </Button>
+          <Button asChild variant="outline" className="rounded-xl">
+            <Link to="/vendor/leads">All leads</Link>
+          </Button>
+          <Button asChild className="rounded-xl">
+            <Link to="/vendor/listings/new">
+              <Plus className="mr-2 h-4 w-4" /> New listing
+            </Link>
+          </Button>
+        </div>
+
       </div>
 
       {vendor.status === "pending" && (
