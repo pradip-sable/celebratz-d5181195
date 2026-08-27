@@ -43,11 +43,30 @@ Access rules:
 
 ## Pricing
 
-Base figure = sum of each component listing's `price_from` (components missing a price are excluded and flagged). Discount applied on top (fixed amount or percentage) yields "Package starting from ₹X". The package page always also shows each component's own price with its unit, plus a persistent note that the number is indicative and the final price depends on guest count and customization. No stored denormalized total — it is computed at read time so listing price edits stay in sync.
+## Package Tiers — schema
 
-## Availability (derived, never manually maintained)
+New `listing_tiers`:
+- `listing_id` → listings (cascade), `name`, `description` (nullable), `price` numeric, `features` text[] (short "what's included" bullets), `sort_order`, `is_active` boolean default true, timestamps + updated_at trigger
+- Tiers have **no** price unit of their own — they inherit the parent listing's `price_unit`
+- Optional per listing, but never exactly one: a validation trigger rejects leaving a listing with a single active tier (0 = flat pricing, 2+ = tiered)
+- Read access follows the parent listing (public read when the listing is live, vendor read/write for own listings, admin full); grants for `anon`, `authenticated`, `service_role`
 
-For a given date, across all component listings:
+`requests`:
+- gains nullable `selected_tier_id` → listing_tiers
+- check constraint: `selected_tier_id` may only be set when `listing_id` is set (never with `package_id`), and a trigger verifies the tier belongs to that listing
+
+## Pricing (both features)
+
+**Effective listing price** = lowest active tier price when the listing has tiers, else the stored `price_from`. Computed at read time everywhere it is shown — search cards, category/event pages, listing detail, and package sums — so editing a tier price can never leave a stale figure. Tiered listings show it as "From ₹X" with the listing's unit plus a "N tiers" hint on cards. Search budget filters use the same effective price, so min/max budget keeps behaving correctly for tiered listings (implemented as a database view or generated read column so filtering stays server-side rather than post-filtered in JS).
+
+**Package (bundle) price**: base figure = sum of each component's *effective* price (lowest active tier if tiered, else `price_from`); a bundle always references a component listing as a whole and never pins one tier. Discount applied on top (fixed amount or percentage) yields "Package starting from ₹X". Components missing a price are excluded and flagged. The package page also shows each component's own price with its unit, plus a persistent note that the figure is indicative and the final price depends on guest count and customization. No stored denormalized total.
+
+## Availability
+
+Tiers: no change — one listing, one calendar; the calendar means the vendor is free that date at all, regardless of tier.
+
+Packages — derived, never manually maintained. For a given date, across all component listings:
+
 - any component `availability_updated_at` older than 30 days → "Check with vendor"
 - any component Booked → Booked
 - all components Available → Available
