@@ -96,15 +96,15 @@ Request/Enquire form: unchanged single-screen flow. When the target listing has 
 
 Packages tab in the moderation queue: package name, vendor, components with prices, computed indicative price, discount. Approve or reject with a reason. Rejected packages return to the vendor as editable drafts. Tiers appear inline in the listing moderation view (name, price, features) so a reviewer sees what is being offered.
 
-## Moderation rule for listing edits — needs your decision
+## Moderation rule for listing edits — decided (Option C)
 
-The plan never stated a re-approval rule for editing a live listing, and the app as built lets a vendor edit a live listing without it returning to `pending`. Tiers must follow the same rule, so please pick one and it applies to both listing fields and tiers:
+One rule governs both the listing's own fields and its tiers:
 
-- **A. Edits stay live** (current behaviour) — fastest for vendors, but price/feature text can change with no review.
-- **B. Any edit sends the listing back to `pending`** — safer, but a typo fix hides the listing until you approve it.
-- **C. Only material fields (price, tiers, title, category) trigger re-approval**; description/photos stay live. My recommendation, since price and tier claims are exactly what needs review.
+- **Material changes send a live listing back to `pending`:** price (`price_from` or `price_unit`), title, category, and any tier change — adding, removing, renaming, reordering, activating/deactivating a tier, editing a tier price, or editing a tier's feature bullets.
+- **Non-material changes stay live, no re-approval:** description, photos/media, address/area text, and other descriptive detail.
 
-Note vendor leads on a package already return to `pending` on edit, so C keeps the two features consistent in spirit.
+While a listing sits in `pending` after a material edit, the previously approved version stays publicly visible so the vendor never loses traffic mid-review; the pending version is what the admin sees in the queue. The vendor form states which edits will trigger re-approval before they save. Packages keep their existing rule (any edit on a live package returns it to `pending`), which is consistent with treating price and composition as material.
+
 
 ## Things I'd handle differently / worth knowing
 
