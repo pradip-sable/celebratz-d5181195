@@ -1,6 +1,9 @@
-# Celebratz — Phase 1 Addition: Vendor Packages
+# Celebratz — Phase 1 Additions: Vendor Packages + Package Tiers
 
-Vendors with 2+ of their own live listings (any categories) can bundle them into a single Package with its own name, description, and discounted indicative price. Packages follow the same admin-approval lifecycle as listings.
+Two distinct features, deliberately named apart:
+- **Packages** — a cross-listing bundle: a vendor combines 2+ of their own live listings (any categories) into one offering with its own name, description, and discounted indicative price. Same admin-approval lifecycle as listings.
+- **Package Tiers** — optional pricing tiers *inside a single listing* (e.g. Basic / Premium / Deluxe), each with its own price and included-features list.
+
 
 ## Sitemap changes
 
