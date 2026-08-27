@@ -82,21 +82,44 @@ Read-only rollup: weighted average of component listings' `rating_avg` (weighted
 
 ## Vendor flow
 
-Vendor overview → Create Package → pick 2+ of their own live listings (grouped by category, with each listing's price/unit visible) → name + description → discount type and value → optional cover image → Submit for review → status `pending` (visible in `/vendor/packages`, not public) → admin approves → `live`, appears on `/packages` and in the cross-sell block on each component listing. Vendors can pause a live package; editing a live package returns it to `pending`.
+Packages: Vendor overview → Create Package → pick 2+ of their own live listings (grouped by category, with each listing's effective price/unit visible) → name + description → discount type and value → optional cover image → Submit for review → status `pending` (visible in `/vendor/packages`, not public) → admin approves → `live`, appears on `/packages` and in the cross-sell block on each component listing. Vendors can pause a live package; editing a live package returns it to `pending`.
+
+Package Tiers: in the existing listing create/edit form, an optional "Package Tiers" section — add/remove tier rows, each with name, price (unit shown read-only from the listing), optional description, and an add/remove list of feature bullets, plus drag-free sort order and an active toggle. Leaving the section empty keeps flat `price_from` pricing exactly as today. Saving with exactly one tier is blocked inline ("add a second tier or remove this one").
+
+## Customer flow
+
+Listing detail with tiers: the single price block is replaced by tier comparison cards (name, price with the listing's unit, feature checklist, lowest tier marked "From"), each with a "Choose this tier" action that opens the existing merged Request/Enquire form with that tier pre-selected. Listings without tiers are unchanged.
+
+Request/Enquire form: unchanged single-screen flow. When the target listing has tiers, it renders a selectable tier list — pre-selected from the tapped card, still changeable — and stores `selected_tier_id` on the request. Package enquiries never show tiers.
 
 ## Admin flow
 
-Packages tab in the moderation queue: sees package name, vendor, components with prices, computed indicative price, discount. Approve or reject with a reason. Rejected packages return to the vendor as editable drafts.
+Packages tab in the moderation queue: package name, vendor, components with prices, computed indicative price, discount. Approve or reject with a reason. Rejected packages return to the vendor as editable drafts. Tiers appear inline in the listing moderation view (name, price, features) so a reviewer sees what is being offered.
+
+## Moderation rule for listing edits — needs your decision
+
+The plan never stated a re-approval rule for editing a live listing, and the app as built lets a vendor edit a live listing without it returning to `pending`. Tiers must follow the same rule, so please pick one and it applies to both listing fields and tiers:
+
+- **A. Edits stay live** (current behaviour) — fastest for vendors, but price/feature text can change with no review.
+- **B. Any edit sends the listing back to `pending`** — safer, but a typo fix hides the listing until you approve it.
+- **C. Only material fields (price, tiers, title, category) trigger re-approval**; description/photos stay live. My recommendation, since price and tier claims are exactly what needs review.
+
+Note vendor leads on a package already return to `pending` on edit, so C keeps the two features consistent in spirit.
 
 ## Things I'd handle differently / worth knowing
 
 1. **Component listing goes non-live.** A package can silently break when a vendor pauses or an admin rejects one of its listings. Recommendation: `/packages` and the package page only count live components; if a package drops below 2 live components it is automatically hidden from public browse (status untouched) and shown to the vendor with an "inactive — a component listing is not live" warning.
 2. **Percentage discount sanity.** Cap `discount_value` at 0–90% for percentages and require the discounted total to stay above zero for fixed amounts, otherwise "starting from ₹0" packages appear.
 3. **Mixed units make the summed figure genuinely rough** (a per-plate caterer plus a per-day venue). Beyond the note, the package card will label the price "indicative" rather than only "starting from", so the caveat travels with the number into browse listings.
-4. **Requests reporting.** With `listing_id` now nullable, existing vendor/customer lead views and the admin requests view must render package leads too — those surfaces are updated in the same change rather than left to fail on a null listing join.
+4. **Requests reporting.** With `listing_id` now nullable and `selected_tier_id` added, existing vendor/customer lead views and the admin requests view must render package leads and show the chosen tier name — those surfaces are updated in the same change rather than left to fail on a null listing join.
+5. **Deactivating a tier that a request points at.** `selected_tier_id` is kept as a historical reference, so tiers are soft-deactivated (`is_active = false`) rather than deleted when any request references them; the lead still shows the tier name the customer picked.
+6. **`price_from` stays the source of truth for untiered listings** rather than being auto-overwritten by tier prices. Keeping one writable field and one computed read value avoids two numbers drifting apart; the vendor form greys out `price_from` while tiers are present and explains why.
+7. **Features as `text[]` vs a child table.** An array is simpler and fine for display-only bullets; it just can't be filtered on later. If Phase 2 wants "filter by what's included", that becomes a structured amenities field, not a rework of tiers.
 
 ## Technical notes
 
-- Availability and price rollups live in a new `src/lib/packages.functions.ts` (public server fns via the publishable client for browse/detail, `requireSupabaseAuth` fns for vendor CRUD), matching the existing `listings.functions.ts` / `vendor.functions.ts` split.
+- Package availability and both price rollups live in a new `src/lib/packages.functions.ts`; tier reads/writes extend `src/lib/listings.functions.ts` and `src/lib/vendor.functions.ts` (`getListingForEdit` / `updateListing` gain tier arrays, written in a transaction-style replace like the existing `listing_attributes` handling).
+- Effective price is exposed through a database view (listing row + `effective_price_from`) so `searchListings` can keep filtering and ordering by price in SQL.
 - `/packages` and `/package/$slug` are public SSR routes with their own `head()` metadata; vendor package routes live under `_authenticated/vendor/`.
-- The `requests` change needs a migration that relaxes `listing_id` and adds the check constraint before `src/lib/requests.functions.ts` and the request form gain the package path.
+- One migration covers: `packages`, `package_listings`, `listing_tiers`, the `requests` changes (`listing_id` nullable, `package_id`, `selected_tier_id`, check constraints), validation triggers, grants, RLS policies, and the effective-price view — applied before the UI work that depends on it.
+
