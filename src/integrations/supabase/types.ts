@@ -71,6 +71,13 @@ export type Database = {
             foreignKeyName: "availability_listing_id_fkey"
             columns: ["listing_id"]
             isOneToOne: false
+            referencedRelation: "listing_effective_prices"
+            referencedColumns: ["listing_id"]
+          },
+          {
+            foreignKeyName: "availability_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
             referencedRelation: "listings"
             referencedColumns: ["id"]
           },
@@ -204,6 +211,13 @@ export type Database = {
             foreignKeyName: "listing_attributes_listing_id_fkey"
             columns: ["listing_id"]
             isOneToOne: false
+            referencedRelation: "listing_effective_prices"
+            referencedColumns: ["listing_id"]
+          },
+          {
+            foreignKeyName: "listing_attributes_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
             referencedRelation: "listings"
             referencedColumns: ["id"]
           },
@@ -232,6 +246,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "event_types"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "listing_event_types_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "listing_effective_prices"
+            referencedColumns: ["listing_id"]
           },
           {
             foreignKeyName: "listing_event_types_listing_id_fkey"
@@ -273,6 +294,67 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "listing_media_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "listing_effective_prices"
+            referencedColumns: ["listing_id"]
+          },
+          {
+            foreignKeyName: "listing_media_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "listings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      listing_tiers: {
+        Row: {
+          created_at: string
+          description: string | null
+          features: string[]
+          id: string
+          is_active: boolean
+          listing_id: string
+          name: string
+          price: number
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          features?: string[]
+          id?: string
+          is_active?: boolean
+          listing_id: string
+          name: string
+          price: number
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          features?: string[]
+          id?: string
+          is_active?: boolean
+          listing_id?: string
+          name?: string
+          price?: number
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "listing_tiers_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "listing_effective_prices"
+            referencedColumns: ["listing_id"]
+          },
+          {
+            foreignKeyName: "listing_tiers_listing_id_fkey"
             columns: ["listing_id"]
             isOneToOne: false
             referencedRelation: "listings"
@@ -398,6 +480,102 @@ export type Database = {
         }
         Relationships: []
       }
+      package_listings: {
+        Row: {
+          created_at: string
+          id: string
+          listing_id: string
+          package_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          listing_id: string
+          package_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          listing_id?: string
+          package_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "package_listings_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "listing_effective_prices"
+            referencedColumns: ["listing_id"]
+          },
+          {
+            foreignKeyName: "package_listings_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "listings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "package_listings_package_id_fkey"
+            columns: ["package_id"]
+            isOneToOne: false
+            referencedRelation: "packages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      packages: {
+        Row: {
+          cover_image: string | null
+          created_at: string
+          description: string | null
+          discount_type: Database["public"]["Enums"]["discount_type"]
+          discount_value: number
+          id: string
+          name: string
+          rejection_reason: string | null
+          slug: string
+          status: Database["public"]["Enums"]["listing_status"]
+          updated_at: string
+          vendor_id: string
+        }
+        Insert: {
+          cover_image?: string | null
+          created_at?: string
+          description?: string | null
+          discount_type?: Database["public"]["Enums"]["discount_type"]
+          discount_value?: number
+          id?: string
+          name: string
+          rejection_reason?: string | null
+          slug: string
+          status?: Database["public"]["Enums"]["listing_status"]
+          updated_at?: string
+          vendor_id: string
+        }
+        Update: {
+          cover_image?: string | null
+          created_at?: string
+          description?: string | null
+          discount_type?: Database["public"]["Enums"]["discount_type"]
+          discount_value?: number
+          id?: string
+          name?: string
+          rejection_reason?: string | null
+          slug?: string
+          status?: Database["public"]["Enums"]["listing_status"]
+          updated_at?: string
+          vendor_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "packages_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "vendors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           account_type: Database["public"]["Enums"]["app_role"]
@@ -475,9 +653,11 @@ export type Database = {
           guest_count: number | null
           id: string
           kind: Database["public"]["Enums"]["request_kind"]
-          listing_id: string
+          listing_id: string | null
           message: string | null
+          package_id: string | null
           phone_snapshot: string | null
+          selected_tier_id: string | null
           status: Database["public"]["Enums"]["request_status"]
           updated_at: string
           vendor_id: string
@@ -492,9 +672,11 @@ export type Database = {
           guest_count?: number | null
           id?: string
           kind: Database["public"]["Enums"]["request_kind"]
-          listing_id: string
+          listing_id?: string | null
           message?: string | null
+          package_id?: string | null
           phone_snapshot?: string | null
+          selected_tier_id?: string | null
           status?: Database["public"]["Enums"]["request_status"]
           updated_at?: string
           vendor_id: string
@@ -509,9 +691,11 @@ export type Database = {
           guest_count?: number | null
           id?: string
           kind?: Database["public"]["Enums"]["request_kind"]
-          listing_id?: string
+          listing_id?: string | null
           message?: string | null
+          package_id?: string | null
           phone_snapshot?: string | null
+          selected_tier_id?: string | null
           status?: Database["public"]["Enums"]["request_status"]
           updated_at?: string
           vendor_id?: string
@@ -523,7 +707,28 @@ export type Database = {
             foreignKeyName: "requests_listing_id_fkey"
             columns: ["listing_id"]
             isOneToOne: false
+            referencedRelation: "listing_effective_prices"
+            referencedColumns: ["listing_id"]
+          },
+          {
+            foreignKeyName: "requests_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
             referencedRelation: "listings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "requests_package_id_fkey"
+            columns: ["package_id"]
+            isOneToOne: false
+            referencedRelation: "packages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "requests_selected_tier_id_fkey"
+            columns: ["selected_tier_id"]
+            isOneToOne: false
+            referencedRelation: "listing_tiers"
             referencedColumns: ["id"]
           },
           {
@@ -605,6 +810,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "reviews_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "listing_effective_prices"
+            referencedColumns: ["listing_id"]
+          },
           {
             foreignKeyName: "reviews_listing_id_fkey"
             columns: ["listing_id"]
@@ -725,6 +937,13 @@ export type Database = {
             foreignKeyName: "wishlists_listing_id_fkey"
             columns: ["listing_id"]
             isOneToOne: false
+            referencedRelation: "listing_effective_prices"
+            referencedColumns: ["listing_id"]
+          },
+          {
+            foreignKeyName: "wishlists_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
             referencedRelation: "listings"
             referencedColumns: ["id"]
           },
@@ -732,7 +951,15 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      listing_effective_prices: {
+        Row: {
+          effective_price_from: number | null
+          listing_id: string | null
+          status: Database["public"]["Enums"]["listing_status"] | null
+          tier_count: number | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       has_role: {
@@ -750,6 +977,7 @@ export type Database = {
     Enums: {
       app_role: "customer" | "vendor" | "admin"
       availability_state: "available" | "tentative" | "booked"
+      discount_type: "fixed_amount" | "percentage"
       listing_status: "draft" | "pending" | "live" | "paused" | "rejected"
       price_unit: "per_day" | "per_plate" | "per_event" | "per_hour"
       request_kind: "booking_request" | "enquiry"
@@ -885,6 +1113,7 @@ export const Constants = {
     Enums: {
       app_role: ["customer", "vendor", "admin"],
       availability_state: ["available", "tentative", "booked"],
+      discount_type: ["fixed_amount", "percentage"],
       listing_status: ["draft", "pending", "live", "paused", "rejected"],
       price_unit: ["per_day", "per_plate", "per_event", "per_hour"],
       request_kind: ["booking_request", "enquiry"],
