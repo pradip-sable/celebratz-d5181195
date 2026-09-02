@@ -122,7 +122,9 @@ export const getListingBySlug = createServerFn({ method: "GET" })
         vendors(id, business_name, about, contact_phone, contact_email),
         listing_attributes(field_key, value),
         listing_media(storage_path, type, position, alt_text),
+        listing_tiers(id, name, description, price, features, sort_order, is_active),
         listing_event_types(event_types(name, slug))
+
       `)
       .eq("slug", data.slug)
       .eq("status", "live")
