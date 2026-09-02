@@ -141,13 +141,20 @@ export const getListingForEdit = createServerFn({ method: "GET" })
     const { data: listing, error } = await context.supabase
       .from("listings")
       .select(
-        "id, title, description, category_id, area_id, address, price_from, price_unit, status, listing_attributes(field_key, value), listing_event_types(event_type_id)",
+        "id, title, description, category_id, area_id, address, price_from, price_unit, status, listing_attributes(field_key, value), listing_event_types(event_type_id), listing_tiers(id, name, description, price, features, sort_order, is_active)",
       )
       .eq("id", data.listingId)
       .single();
     if (error) throw error;
     return listing;
   });
+
+const tierInput = z.object({
+  name: z.string().min(1).max(80),
+  description: z.string().max(600).optional(),
+  price: z.coerce.number().nonnegative(),
+  features: z.array(z.string().min(1).max(160)).max(20),
+});
 
 export const updateListing = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -163,10 +170,51 @@ export const updateListing = createServerFn({ method: "POST" })
         price_unit: z.enum(["per_day", "per_plate", "per_hour", "per_event"]),
         attributes: z.record(z.any()),
         event_type_ids: z.array(z.string().uuid()).min(1),
+        tiers: z.array(tierInput).default([]),
+      })
+      .refine((d) => d.tiers.length === 0 || d.tiers.length >= 2, {
+        message: "Package Tiers need at least 2 tiers — leave the section empty for flat pricing",
       })
       .parse(data),
   )
   .handler(async ({ context, data }) => {
+    const { data: existing, error: existingError } = await context.supabase
+      .from("listings")
+      .select("id, status, title, category_id, price_from, price_unit, listing_tiers(name, description, price, features, sort_order, is_active)")
+      .eq("id", data.listingId)
+      .single();
+    if (existingError) throw existingError;
+
+    const previousTiers = (existing.listing_tiers ?? [])
+      .slice()
+      .sort((a: any, b: any) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
+      .map((t: any) => ({
+        name: t.name,
+        description: t.description ?? null,
+        price: Number(t.price),
+        features: t.features ?? [],
+        is_active: t.is_active !== false,
+      }));
+    const nextTiers = data.tiers.map((t, index) => ({
+      name: t.name,
+      description: t.description || null,
+      price: Number(t.price),
+      features: t.features,
+      is_active: true,
+      sort_order: index,
+    }));
+
+    // Option C: price, tiers, title and category are material edits and return a
+    // live listing to review. Description, photos, area and address stay live.
+    const materialEdit =
+      existing.title !== data.title ||
+      Number(existing.price_from ?? 0) !== Number(data.price_from) ||
+      existing.price_unit !== data.price_unit ||
+      JSON.stringify(previousTiers) !==
+        JSON.stringify(nextTiers.map(({ sort_order: _sortOrder, ...rest }) => rest));
+
+    const nextStatus = existing.status === "live" && materialEdit ? "pending" : existing.status;
+
     const { error } = await context.supabase
       .from("listings")
       .update({
@@ -176,6 +224,7 @@ export const updateListing = createServerFn({ method: "POST" })
         address: data.address ?? null,
         price_from: data.price_from,
         price_unit: data.price_unit,
+        status: nextStatus,
         updated_at: new Date().toISOString(),
       })
       .eq("id", data.listingId);
@@ -192,8 +241,17 @@ export const updateListing = createServerFn({ method: "POST" })
       .from("listing_event_types")
       .insert(data.event_type_ids.map((event_type_id) => ({ listing_id: data.listingId, event_type_id })));
 
-    return { ok: true };
+    await context.supabase.from("listing_tiers").delete().eq("listing_id", data.listingId);
+    if (nextTiers.length) {
+      const { error: tierError } = await context.supabase
+        .from("listing_tiers")
+        .insert(nextTiers.map((t) => ({ ...t, listing_id: data.listingId })));
+      if (tierError) throw tierError;
+    }
+
+    return { ok: true, status: nextStatus, sentBackToReview: nextStatus === "pending" && existing.status === "live" };
   });
+
 
 export const getVendorLeads = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])

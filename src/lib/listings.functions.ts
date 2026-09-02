@@ -1,7 +1,9 @@
 import { createServerFn } from "@tanstack/react-start";
 import { createClient } from "@supabase/supabase-js";
 import { z } from "zod";
+import { effectiveListingPrice } from "@/lib/pricing";
 import type { Database } from "@/integrations/supabase/types";
+
 
 const rawSearchSchema = z.object({
   q: z.string().optional(),
@@ -62,6 +64,7 @@ export const searchListings = createServerFn({ method: "GET" })
         categories!inner(name, slug, icon),
         areas!inner(name, slug),
         listing_media(storage_path, type, position),
+        listing_tiers(id, name, price, is_active, sort_order),
         ${eventTypeJoin}
       `)
       .eq("status", "live")
@@ -77,12 +80,6 @@ export const searchListings = createServerFn({ method: "GET" })
       query = query.eq("listing_event_types.event_types.slug", data.eventType);
     }
 
-    if (data.minPrice) {
-      query = query.gte("price_from", data.minPrice);
-    }
-    if (data.maxPrice) {
-      query = query.lte("price_from", data.maxPrice);
-    }
     if (data.minCapacity) {
       query = query.gte("capacity_max", data.minCapacity);
     }
@@ -95,7 +92,18 @@ export const searchListings = createServerFn({ method: "GET" })
 
     const { data: rows, error } = await query;
     if (error) throw error;
-    return rows ?? [];
+
+    // Budget filters run on the effective price (lowest active tier, else price_from)
+    // so tiered listings are never filtered on a stale flat price.
+    return (rows ?? [])
+      .map((row) => ({ ...row, effective_price: effectiveListingPrice(row as never) }))
+      .filter((row) => {
+        const price = row.effective_price;
+        if (data.minPrice && (price == null || price < data.minPrice)) return false;
+        if (data.maxPrice && (price == null || price > data.maxPrice)) return false;
+        return true;
+      });
+
   });
 
 const slugSchema = z.object({ slug: z.string() });
@@ -114,7 +122,9 @@ export const getListingBySlug = createServerFn({ method: "GET" })
         vendors(id, business_name, about, contact_phone, contact_email),
         listing_attributes(field_key, value),
         listing_media(storage_path, type, position, alt_text),
+        listing_tiers(id, name, description, price, features, sort_order, is_active),
         listing_event_types(event_types(name, slug))
+
       `)
       .eq("slug", data.slug)
       .eq("status", "live")
@@ -158,7 +168,11 @@ export const getListingBySlug = createServerFn({ method: "GET" })
       profiles: { full_name: r.customer_id ? nameById[r.customer_id] ?? null : null },
     }));
 
-    return { listing, availability: availability ?? [], reviews: reviewsWithNames };
+    return {
+      listing: { ...listing, effective_price: effectiveListingPrice(listing as never) },
+      availability: availability ?? [],
+      reviews: reviewsWithNames,
+    };
   });
 
 export const getHomeData = createServerFn({ method: "GET" })
@@ -171,7 +185,7 @@ export const getHomeData = createServerFn({ method: "GET" })
       supabase.from("areas").select("id, name, slug").order("name"),
       supabase
         .from("listings")
-        .select("id, title, slug, price_from, price_unit, rating_avg, review_count, categories(name, slug), areas(name, slug), listing_media(storage_path)")
+        .select("id, title, slug, price_from, price_unit, rating_avg, review_count, categories(name, slug), areas(name, slug), listing_media(storage_path), listing_tiers(id, name, price, is_active)")
         .eq("status", "live")
         .order("rating_avg", { ascending: false })
         .limit(6),
@@ -181,6 +195,7 @@ export const getHomeData = createServerFn({ method: "GET" })
       categories: categories ?? [],
       eventTypes: eventTypes ?? [],
       areas: areas ?? [],
-      featured: featured ?? [],
+      featured: (featured ?? []).map((l) => ({ ...l, effective_price: effectiveListingPrice(l as never) })),
     };
+
   });
