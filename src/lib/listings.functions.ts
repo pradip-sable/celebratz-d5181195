@@ -64,6 +64,7 @@ export const searchListings = createServerFn({ method: "GET" })
         categories!inner(name, slug, icon),
         areas!inner(name, slug),
         listing_media(storage_path, type, position),
+        listing_tiers(id, name, price, is_active, sort_order),
         ${eventTypeJoin}
       `)
       .eq("status", "live")
@@ -79,12 +80,6 @@ export const searchListings = createServerFn({ method: "GET" })
       query = query.eq("listing_event_types.event_types.slug", data.eventType);
     }
 
-    if (data.minPrice) {
-      query = query.gte("price_from", data.minPrice);
-    }
-    if (data.maxPrice) {
-      query = query.lte("price_from", data.maxPrice);
-    }
     if (data.minCapacity) {
       query = query.gte("capacity_max", data.minCapacity);
     }
@@ -97,7 +92,18 @@ export const searchListings = createServerFn({ method: "GET" })
 
     const { data: rows, error } = await query;
     if (error) throw error;
-    return rows ?? [];
+
+    // Budget filters run on the effective price (lowest active tier, else price_from)
+    // so tiered listings are never filtered on a stale flat price.
+    return (rows ?? [])
+      .map((row) => ({ ...row, effective_price: effectiveListingPrice(row as never) }))
+      .filter((row) => {
+        const price = row.effective_price;
+        if (data.minPrice && (price == null || price < data.minPrice)) return false;
+        if (data.maxPrice && (price == null || price > data.maxPrice)) return false;
+        return true;
+      });
+
   });
 
 const slugSchema = z.object({ slug: z.string() });
