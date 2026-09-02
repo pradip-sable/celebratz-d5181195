@@ -105,17 +105,9 @@ export const submitRequest = createServerFn({ method: "POST" })
     }
 
     const supabase = publicClient();
+    const target = await resolveTarget(supabase, data);
 
-    const { data: listing, error: listingError } = await supabase
-      .from("listings")
-      .select("id, vendor_id")
-      .eq("id", data.listingId)
-      .eq("status", "live")
-      .single();
-
-    if (listingError || !listing) throw new Error("Listing not found");
-
-    const { error } = await supabase.from("requests").insert(buildRow(data, listing, null));
+    const { error } = await supabase.from("requests").insert(buildRow(data, target, null));
     if (error) throw error;
     return { ok: true };
   });
@@ -129,19 +121,13 @@ export const submitRequestAsUser = createServerFn({ method: "POST" })
       throw new Error("Phone numbers do not match");
     }
 
-    const { data: listing, error: listingError } = await context.supabase
-      .from("listings")
-      .select("id, vendor_id")
-      .eq("id", data.listingId)
-      .eq("status", "live")
-      .single();
-
-    if (listingError || !listing) throw new Error("Listing not found");
+    const target = await resolveTarget(context.supabase as unknown as AnySupabase, data);
 
     const { error } = await context.supabase
       .from("requests")
-      .insert(buildRow(data, listing, context.userId));
+      .insert(buildRow(data, target, context.userId));
     if (error) throw error;
+
 
     await context.supabase
       .from("profiles")
