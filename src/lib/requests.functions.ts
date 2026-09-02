@@ -4,18 +4,27 @@ import { createClient } from "@supabase/supabase-js";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import type { Database } from "@/integrations/supabase/types";
 
-const requestSchema = z.object({
-  listingId: z.string().uuid(),
-  kind: z.enum(["booking_request", "enquiry"]),
-  eventDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/), // YYYY-MM-DD
-  visitDate: z.string().optional(),
-  visitTime: z.string().optional(),
-  message: z.string().max(1000).optional(),
-  guestCount: z.coerce.number().int().positive().optional(),
-  customerName: z.string().min(1).max(100),
-  customerPhone: z.string().min(10).max(20),
-  customerPhoneConfirm: z.string().min(10).max(20),
-});
+const requestSchema = z
+  .object({
+    listingId: z.string().uuid().optional(),
+    packageId: z.string().uuid().optional(),
+    selectedTierId: z.string().uuid().optional(),
+    kind: z.enum(["booking_request", "enquiry"]),
+    eventDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/), // YYYY-MM-DD
+    visitDate: z.string().optional(),
+    visitTime: z.string().optional(),
+    message: z.string().max(1000).optional(),
+    guestCount: z.coerce.number().int().positive().optional(),
+    customerName: z.string().min(1).max(100),
+    customerPhone: z.string().min(10).max(20),
+    customerPhoneConfirm: z.string().min(10).max(20),
+  })
+  .refine((d) => Boolean(d.listingId) !== Boolean(d.packageId), {
+    message: "A request must target exactly one listing or one package",
+  })
+  .refine((d) => !d.selectedTierId || Boolean(d.listingId), {
+    message: "A package tier can only be selected on a single-listing request",
+  });
 
 type RequestInput = z.infer<typeof requestSchema>;
 
@@ -27,10 +36,16 @@ function publicClient() {
   );
 }
 
-function buildRow(data: RequestInput, listing: { id: string; vendor_id: string }, customerId: string | null) {
+function buildRow(
+  data: RequestInput,
+  target: { listingId: string | null; packageId: string | null; vendorId: string },
+  customerId: string | null,
+) {
   return {
-    listing_id: listing.id,
-    vendor_id: listing.vendor_id,
+    listing_id: target.listingId,
+    package_id: target.packageId,
+    selected_tier_id: target.listingId ? data.selectedTierId ?? null : null,
+    vendor_id: target.vendorId,
     customer_id: customerId,
     kind: data.kind,
     event_date: data.eventDate,
@@ -42,6 +57,44 @@ function buildRow(data: RequestInput, listing: { id: string; vendor_id: string }
     phone_snapshot: data.customerPhone,
   };
 }
+
+type AnySupabase = ReturnType<typeof publicClient>;
+
+/** Resolves the request target (a live listing or a live package) to its vendor. */
+async function resolveTarget(supabase: AnySupabase, data: RequestInput) {
+  if (data.listingId) {
+    const { data: listing, error } = await supabase
+      .from("listings")
+      .select("id, vendor_id")
+      .eq("id", data.listingId)
+      .eq("status", "live")
+      .single();
+    if (error || !listing) throw new Error("Listing not found");
+
+    if (data.selectedTierId) {
+      const { data: tier } = await supabase
+        .from("listing_tiers")
+        .select("id")
+        .eq("id", data.selectedTierId)
+        .eq("listing_id", listing.id)
+        .eq("is_active", true)
+        .maybeSingle();
+      if (!tier) throw new Error("Selected package tier is no longer available");
+    }
+
+    return { listingId: listing.id, packageId: null, vendorId: listing.vendor_id };
+  }
+
+  const { data: pkg, error } = await supabase
+    .from("packages")
+    .select("id, vendor_id")
+    .eq("id", data.packageId!)
+    .eq("status", "live")
+    .single();
+  if (error || !pkg) throw new Error("Package not found");
+  return { listingId: null, packageId: pkg.id, vendorId: pkg.vendor_id };
+}
+
 
 /** Guest submission (no session). */
 export const submitRequest = createServerFn({ method: "POST" })
