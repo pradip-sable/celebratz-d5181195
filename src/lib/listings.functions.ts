@@ -168,7 +168,11 @@ export const getListingBySlug = createServerFn({ method: "GET" })
       profiles: { full_name: r.customer_id ? nameById[r.customer_id] ?? null : null },
     }));
 
-    return { listing, availability: availability ?? [], reviews: reviewsWithNames };
+    return {
+      listing: { ...listing, effective_price: effectiveListingPrice(listing as never) },
+      availability: availability ?? [],
+      reviews: reviewsWithNames,
+    };
   });
 
 export const getHomeData = createServerFn({ method: "GET" })
@@ -181,7 +185,7 @@ export const getHomeData = createServerFn({ method: "GET" })
       supabase.from("areas").select("id, name, slug").order("name"),
       supabase
         .from("listings")
-        .select("id, title, slug, price_from, price_unit, rating_avg, review_count, categories(name, slug), areas(name, slug), listing_media(storage_path)")
+        .select("id, title, slug, price_from, price_unit, rating_avg, review_count, categories(name, slug), areas(name, slug), listing_media(storage_path), listing_tiers(id, name, price, is_active)")
         .eq("status", "live")
         .order("rating_avg", { ascending: false })
         .limit(6),
@@ -191,6 +195,7 @@ export const getHomeData = createServerFn({ method: "GET" })
       categories: categories ?? [],
       eventTypes: eventTypes ?? [],
       areas: areas ?? [],
-      featured: featured ?? [],
+      featured: (featured ?? []).map((l) => ({ ...l, effective_price: effectiveListingPrice(l as never) })),
     };
+
   });
