@@ -15,6 +15,7 @@ import { Route as AboutRouteImport } from './routes/about'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as ForVendorsRouteImport } from './routes/for-vendors'
+import { Route as PackagesRouteImport } from './routes/packages'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as RequestRouteImport } from './routes/request'
 import { Route as SearchRouteImport } from './routes/search'
@@ -26,6 +27,8 @@ import { Route as AuthenticatedWishlistRouteImport } from './routes/_authenticat
 import { Route as CategorySlugRouteImport } from './routes/category.$slug'
 import { Route as EventsSlugRouteImport } from './routes/events.$slug'
 import { Route as ListingSlugRouteImport } from './routes/listing.$slug'
+import { Route as PackagesIndexRouteImport } from './routes/packages.index'
+import { Route as PackagesSlugRouteImport } from './routes/packages.$slug'
 import { Route as AuthenticatedAccountProfileRouteImport } from './routes/_authenticated/account.profile'
 import { Route as AuthenticatedVendorIndexRouteImport } from './routes/_authenticated/vendor/index'
 import { Route as AuthenticatedVendorLeadsRouteImport } from './routes/_authenticated/vendor/leads'
@@ -61,6 +64,11 @@ const ContactRoute = ContactRouteImport.update({
 const ForVendorsRoute = ForVendorsRouteImport.update({
   id: '/for-vendors',
   path: '/for-vendors',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PackagesRoute = PackagesRouteImport.update({
+  id: '/packages',
+  path: '/packages',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PrivacyRoute = PrivacyRouteImport.update({
@@ -118,6 +126,16 @@ const ListingSlugRoute = ListingSlugRouteImport.update({
   path: '/listing/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PackagesIndexRoute = PackagesIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => PackagesRoute,
+} as any)
+const PackagesSlugRoute = PackagesSlugRouteImport.update({
+  id: '/$slug',
+  path: '/$slug',
+  getParentRoute: () => PackagesRoute,
+} as any)
 const AuthenticatedAccountProfileRoute =
   AuthenticatedAccountProfileRouteImport.update({
     id: '/account/profile',
@@ -167,6 +185,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/contact': typeof ContactRoute
   '/for-vendors': typeof ForVendorsRoute
+  '/packages': typeof PackagesRouteWithChildren
   '/privacy': typeof PrivacyRoute
   '/request': typeof RequestRoute
   '/search': typeof SearchRoute
@@ -178,6 +197,8 @@ export interface FileRoutesByFullPath {
   '/category/$slug': typeof CategorySlugRoute
   '/events/$slug': typeof EventsSlugRoute
   '/listing/$slug': typeof ListingSlugRoute
+  '/packages/$slug': typeof PackagesSlugRoute
+  '/packages/': typeof PackagesIndexRoute
   '/account/profile': typeof AuthenticatedAccountProfileRoute
   '/vendor/leads': typeof AuthenticatedVendorLeadsRoute
   '/vendor/profile': typeof AuthenticatedVendorProfileRoute
@@ -203,6 +224,8 @@ export interface FileRoutesByTo {
   '/category/$slug': typeof CategorySlugRoute
   '/events/$slug': typeof EventsSlugRoute
   '/listing/$slug': typeof ListingSlugRoute
+  '/packages/$slug': typeof PackagesSlugRoute
+  '/packages': typeof PackagesIndexRoute
   '/account/profile': typeof AuthenticatedAccountProfileRoute
   '/vendor/leads': typeof AuthenticatedVendorLeadsRoute
   '/vendor/profile': typeof AuthenticatedVendorProfileRoute
@@ -219,6 +242,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/contact': typeof ContactRoute
   '/for-vendors': typeof ForVendorsRoute
+  '/packages': typeof PackagesRouteWithChildren
   '/privacy': typeof PrivacyRoute
   '/request': typeof RequestRoute
   '/search': typeof SearchRoute
@@ -230,6 +254,8 @@ export interface FileRoutesById {
   '/category/$slug': typeof CategorySlugRoute
   '/events/$slug': typeof EventsSlugRoute
   '/listing/$slug': typeof ListingSlugRoute
+  '/packages/$slug': typeof PackagesSlugRoute
+  '/packages/': typeof PackagesIndexRoute
   '/_authenticated/account/profile': typeof AuthenticatedAccountProfileRoute
   '/_authenticated/vendor/leads': typeof AuthenticatedVendorLeadsRoute
   '/_authenticated/vendor/profile': typeof AuthenticatedVendorProfileRoute
@@ -246,6 +272,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/contact'
     | '/for-vendors'
+    | '/packages'
     | '/privacy'
     | '/request'
     | '/search'
@@ -257,6 +284,8 @@ export interface FileRouteTypes {
     | '/category/$slug'
     | '/events/$slug'
     | '/listing/$slug'
+    | '/packages/$slug'
+    | '/packages/'
     | '/account/profile'
     | '/vendor/leads'
     | '/vendor/profile'
@@ -282,6 +311,8 @@ export interface FileRouteTypes {
     | '/category/$slug'
     | '/events/$slug'
     | '/listing/$slug'
+    | '/packages/$slug'
+    | '/packages'
     | '/account/profile'
     | '/vendor/leads'
     | '/vendor/profile'
@@ -297,6 +328,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/contact'
     | '/for-vendors'
+    | '/packages'
     | '/privacy'
     | '/request'
     | '/search'
@@ -308,6 +340,8 @@ export interface FileRouteTypes {
     | '/category/$slug'
     | '/events/$slug'
     | '/listing/$slug'
+    | '/packages/$slug'
+    | '/packages/'
     | '/_authenticated/account/profile'
     | '/_authenticated/vendor/leads'
     | '/_authenticated/vendor/profile'
@@ -324,6 +358,7 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   ContactRoute: typeof ContactRoute
   ForVendorsRoute: typeof ForVendorsRoute
+  PackagesRoute: typeof PackagesRouteWithChildren
   PrivacyRoute: typeof PrivacyRoute
   RequestRoute: typeof RequestRoute
   SearchRoute: typeof SearchRoute
@@ -375,6 +410,13 @@ declare module '@tanstack/react-router' {
       path: '/for-vendors'
       fullPath: '/for-vendors'
       preLoaderRoute: typeof ForVendorsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/packages': {
+      id: '/packages'
+      path: '/packages'
+      fullPath: '/packages'
+      preLoaderRoute: typeof PackagesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/privacy': {
@@ -453,6 +495,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/listing/$slug'
       preLoaderRoute: typeof ListingSlugRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/packages/': {
+      id: '/packages/'
+      path: '/'
+      fullPath: '/packages/'
+      preLoaderRoute: typeof PackagesIndexRouteImport
+      parentRoute: typeof PackagesRoute
+    }
+    '/packages/$slug': {
+      id: '/packages/$slug'
+      path: '/$slug'
+      fullPath: '/packages/$slug'
+      preLoaderRoute: typeof PackagesSlugRouteImport
+      parentRoute: typeof PackagesRoute
     }
     '/_authenticated/account/profile': {
       id: '/_authenticated/account/profile'
@@ -539,6 +595,20 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
 const AuthenticatedRouteRouteWithChildren =
   AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
 
+interface PackagesRouteChildren {
+  PackagesSlugRoute: typeof PackagesSlugRoute
+  PackagesIndexRoute: typeof PackagesIndexRoute
+}
+
+const PackagesRouteChildren: PackagesRouteChildren = {
+  PackagesSlugRoute: PackagesSlugRoute,
+  PackagesIndexRoute: PackagesIndexRoute,
+}
+
+const PackagesRouteWithChildren = PackagesRoute._addFileChildren(
+  PackagesRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
@@ -546,6 +616,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   ContactRoute: ContactRoute,
   ForVendorsRoute: ForVendorsRoute,
+  PackagesRoute: PackagesRouteWithChildren,
   PrivacyRoute: PrivacyRoute,
   RequestRoute: RequestRoute,
   SearchRoute: SearchRoute,

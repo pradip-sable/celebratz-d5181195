@@ -16,34 +16,68 @@ export const getAdminOverview = createServerFn({ method: "GET" })
   .handler(async ({ context }) => {
     await assertAdmin(context);
 
-    const [{ data: vendors }, { data: listings }, { data: requests }, { data: reviews }] = await Promise.all([
-      context.supabase
-        .from("vendors")
-        .select("id, business_name, status, contact_phone, contact_email, about, created_at")
-        .order("created_at", { ascending: false }),
-      context.supabase
-        .from("listings")
-        .select("id, title, slug, status, price_from, price_unit, created_at, category:categories(name), vendor:vendors(business_name)")
-        .order("created_at", { ascending: false }),
-      context.supabase
-        .from("requests")
-        .select("id, kind, status, event_date, created_at, phone_snapshot, listing:listings(title)")
-        .order("created_at", { ascending: false })
-        .limit(50),
-      context.supabase
-        .from("reviews")
-        .select("id, rating, body, status, created_at, listing:listings(title)")
-        .order("created_at", { ascending: false })
-        .limit(50),
-    ]);
+    const [{ data: vendors }, { data: listings }, { data: requests }, { data: reviews }, { data: packages }] =
+      await Promise.all([
+        context.supabase
+          .from("vendors")
+          .select("id, business_name, status, contact_phone, contact_email, about, created_at")
+          .order("created_at", { ascending: false }),
+        context.supabase
+          .from("listings")
+          .select("id, title, slug, status, price_from, price_unit, created_at, category:categories(name), vendor:vendors(business_name), listing_tiers(id, name, price, is_active)")
+          .order("created_at", { ascending: false }),
+        context.supabase
+          .from("requests")
+          .select("id, kind, status, event_date, created_at, phone_snapshot, listing:listings(title), package:packages(name), tier:listing_tiers(name)")
+          .order("created_at", { ascending: false })
+          .limit(50),
+        context.supabase
+          .from("reviews")
+          .select("id, rating, body, status, created_at, listing:listings(title)")
+          .order("created_at", { ascending: false })
+          .limit(50),
+        context.supabase
+          .from("packages")
+          .select("id, name, slug, status, discount_type, discount_value, created_at, vendor:vendors(business_name), package_listings(listing:listings(id, title, price_from, price_unit, status, categories(name), listing_tiers(id, name, price, is_active)))")
+          .order("created_at", { ascending: false }),
+      ]);
 
     return {
       vendors: vendors ?? [],
       listings: listings ?? [],
       requests: requests ?? [],
       reviews: reviews ?? [],
+      packages: (packages ?? []).map((pkg: any) => ({
+        ...pkg,
+        components: (pkg.package_listings ?? []).map((pl: any) => pl.listing).filter(Boolean),
+      })),
     };
   });
+
+export const setPackageStatusAdmin = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data) =>
+    z
+      .object({
+        packageId: z.string().uuid(),
+        status: z.enum(["live", "rejected", "pending", "paused", "draft"]),
+        reason: z.string().max(500).optional(),
+      })
+      .parse(data),
+  )
+  .handler(async ({ context, data }) => {
+    await assertAdmin(context);
+    const { error } = await context.supabase
+      .from("packages")
+      .update({
+        status: data.status,
+        rejection_reason: data.status === "rejected" ? data.reason ?? null : null,
+      })
+      .eq("id", data.packageId);
+    if (error) throw error;
+    return { ok: true };
+  });
+
 
 export const setVendorStatus = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])

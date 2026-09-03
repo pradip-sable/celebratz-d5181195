@@ -1,12 +1,6 @@
 import { Link } from "@tanstack/react-router";
-import { Star, MapPin } from "lucide-react";
-
-const UNIT_LABEL: Record<string, string> = {
-  per_day: "per day",
-  per_plate: "per plate",
-  per_hour: "per hour",
-  per_event: "per event",
-};
+import { Star, MapPin, Layers } from "lucide-react";
+import { effectiveListingPrice, formatInr, tierCount, unitLabel, type TierLike } from "@/lib/pricing";
 
 export type ListingCardData = {
   id: string;
@@ -16,13 +10,18 @@ export type ListingCardData = {
   price_unit: string;
   rating_avg: number | null;
   review_count?: number | null;
+  effective_price?: number | null;
   categories?: { name: string } | null;
   areas?: { name: string } | null;
   listing_media?: { storage_path: string }[] | null;
+  listing_tiers?: TierLike[] | null;
 };
 
 export function ListingCard({ listing }: { listing: ListingCardData }) {
   const image = listing.listing_media?.[0]?.storage_path;
+  const price = listing.effective_price ?? effectiveListingPrice(listing);
+  const tiers = tierCount(listing);
+
   return (
     <Link
       to="/listing/$slug"
@@ -54,14 +53,17 @@ export function ListingCard({ listing }: { listing: ListingCardData }) {
           {listing.areas?.name ?? "Pune"}
           {listing.categories?.name ? ` · ${listing.categories.name}` : ""}
         </p>
-        {listing.price_from ? (
+        {price != null ? (
           <p className="pt-1 text-sm font-semibold">
-            From ₹{Number(listing.price_from).toLocaleString("en-IN")}{" "}
-            <span className="text-xs font-normal text-muted-foreground">
-              {UNIT_LABEL[listing.price_unit] ?? ""}
-            </span>
+            From {formatInr(price)}{" "}
+            <span className="text-xs font-normal text-muted-foreground">{unitLabel(listing.price_unit)}</span>
           </p>
         ) : null}
+        {tiers > 0 && (
+          <p className="flex items-center gap-1 text-xs font-medium text-primary">
+            <Layers className="h-3.5 w-3.5" /> {tiers} package tiers
+          </p>
+        )}
       </div>
     </Link>
   );
