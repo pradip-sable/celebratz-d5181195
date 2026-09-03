@@ -87,7 +87,21 @@ export const createListing = createServerFn({ method: "POST" })
       address: z.string().max(300).optional(),
       attributes: z.record(z.any()),
       event_type_ids: z.array(z.string().uuid()).min(1),
-    }).parse(data)
+      tiers: z
+        .array(
+          z.object({
+            name: z.string().min(1).max(80),
+            description: z.string().max(600).optional(),
+            price: z.coerce.number().nonnegative(),
+            features: z.array(z.string().min(1).max(160)).max(20),
+          }),
+        )
+        .default([]),
+    })
+      .refine((d) => d.tiers.length === 0 || d.tiers.length >= 2, {
+        message: "Package Tiers need at least 2 tiers — leave the section empty for flat pricing",
+      })
+      .parse(data)
   )
   .handler(async ({ context, data }) => {
     const { data: vendor, error: vendorError } = await context.supabase
@@ -128,8 +142,24 @@ export const createListing = createServerFn({ method: "POST" })
       data.event_type_ids.map((event_type_id) => ({ listing_id: listing.id, event_type_id }))
     );
 
+    if (data.tiers.length) {
+      const { error: tierError } = await context.supabase.from("listing_tiers").insert(
+        data.tiers.map((tier, index) => ({
+          listing_id: listing.id,
+          name: tier.name,
+          description: tier.description || null,
+          price: tier.price,
+          features: tier.features,
+          sort_order: index,
+          is_active: true,
+        })),
+      );
+      if (tierError) throw tierError;
+    }
+
     return { ok: true, listingId: listing.id };
   });
+
 
 export const updateMyProfile = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
