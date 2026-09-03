@@ -27,6 +27,7 @@ import { Route as AuthenticatedWishlistRouteImport } from './routes/_authenticat
 import { Route as CategorySlugRouteImport } from './routes/category.$slug'
 import { Route as EventsSlugRouteImport } from './routes/events.$slug'
 import { Route as ListingSlugRouteImport } from './routes/listing.$slug'
+import { Route as PackagesIndexRouteImport } from './routes/packages.index'
 import { Route as PackagesSlugRouteImport } from './routes/packages.$slug'
 import { Route as AuthenticatedAccountProfileRouteImport } from './routes/_authenticated/account.profile'
 import { Route as AuthenticatedVendorIndexRouteImport } from './routes/_authenticated/vendor/index'
@@ -125,6 +126,11 @@ const ListingSlugRoute = ListingSlugRouteImport.update({
   path: '/listing/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PackagesIndexRoute = PackagesIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => PackagesRoute,
+} as any)
 const PackagesSlugRoute = PackagesSlugRouteImport.update({
   id: '/$slug',
   path: '/$slug',
@@ -192,6 +198,7 @@ export interface FileRoutesByFullPath {
   '/events/$slug': typeof EventsSlugRoute
   '/listing/$slug': typeof ListingSlugRoute
   '/packages/$slug': typeof PackagesSlugRoute
+  '/packages/': typeof PackagesIndexRoute
   '/account/profile': typeof AuthenticatedAccountProfileRoute
   '/vendor/leads': typeof AuthenticatedVendorLeadsRoute
   '/vendor/profile': typeof AuthenticatedVendorProfileRoute
@@ -206,7 +213,6 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/contact': typeof ContactRoute
   '/for-vendors': typeof ForVendorsRoute
-  '/packages': typeof PackagesRouteWithChildren
   '/privacy': typeof PrivacyRoute
   '/request': typeof RequestRoute
   '/search': typeof SearchRoute
@@ -219,6 +225,7 @@ export interface FileRoutesByTo {
   '/events/$slug': typeof EventsSlugRoute
   '/listing/$slug': typeof ListingSlugRoute
   '/packages/$slug': typeof PackagesSlugRoute
+  '/packages': typeof PackagesIndexRoute
   '/account/profile': typeof AuthenticatedAccountProfileRoute
   '/vendor/leads': typeof AuthenticatedVendorLeadsRoute
   '/vendor/profile': typeof AuthenticatedVendorProfileRoute
@@ -248,6 +255,7 @@ export interface FileRoutesById {
   '/events/$slug': typeof EventsSlugRoute
   '/listing/$slug': typeof ListingSlugRoute
   '/packages/$slug': typeof PackagesSlugRoute
+  '/packages/': typeof PackagesIndexRoute
   '/_authenticated/account/profile': typeof AuthenticatedAccountProfileRoute
   '/_authenticated/vendor/leads': typeof AuthenticatedVendorLeadsRoute
   '/_authenticated/vendor/profile': typeof AuthenticatedVendorProfileRoute
@@ -277,6 +285,7 @@ export interface FileRouteTypes {
     | '/events/$slug'
     | '/listing/$slug'
     | '/packages/$slug'
+    | '/packages/'
     | '/account/profile'
     | '/vendor/leads'
     | '/vendor/profile'
@@ -291,7 +300,6 @@ export interface FileRouteTypes {
     | '/auth'
     | '/contact'
     | '/for-vendors'
-    | '/packages'
     | '/privacy'
     | '/request'
     | '/search'
@@ -304,6 +312,7 @@ export interface FileRouteTypes {
     | '/events/$slug'
     | '/listing/$slug'
     | '/packages/$slug'
+    | '/packages'
     | '/account/profile'
     | '/vendor/leads'
     | '/vendor/profile'
@@ -332,6 +341,7 @@ export interface FileRouteTypes {
     | '/events/$slug'
     | '/listing/$slug'
     | '/packages/$slug'
+    | '/packages/'
     | '/_authenticated/account/profile'
     | '/_authenticated/vendor/leads'
     | '/_authenticated/vendor/profile'
@@ -486,6 +496,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ListingSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/packages/': {
+      id: '/packages/'
+      path: '/'
+      fullPath: '/packages/'
+      preLoaderRoute: typeof PackagesIndexRouteImport
+      parentRoute: typeof PackagesRoute
+    }
     '/packages/$slug': {
       id: '/packages/$slug'
       path: '/$slug'
@@ -580,10 +597,12 @@ const AuthenticatedRouteRouteWithChildren =
 
 interface PackagesRouteChildren {
   PackagesSlugRoute: typeof PackagesSlugRoute
+  PackagesIndexRoute: typeof PackagesIndexRoute
 }
 
 const PackagesRouteChildren: PackagesRouteChildren = {
   PackagesSlugRoute: PackagesSlugRoute,
+  PackagesIndexRoute: PackagesIndexRoute,
 }
 
 const PackagesRouteWithChildren = PackagesRoute._addFileChildren(
