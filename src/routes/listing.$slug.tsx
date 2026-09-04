@@ -1,10 +1,13 @@
 import { createFileRoute, Link, useParams } from "@tanstack/react-router";
-import { useSuspenseQuery } from "@tanstack/react-query";
+import { useQuery, useSuspenseQuery } from "@tanstack/react-query";
 import { useState } from "react";
-import { MapPin, Phone, Mail, Star, Calendar, Clock, Check, AlertCircle, ChevronLeft, ChevronRight } from "lucide-react";
-import { format, differenceInDays, parseISO, addDays } from "date-fns";
+import { MapPin, Phone, Mail, Star, Clock, Check, AlertCircle, ChevronLeft, ChevronRight, Layers, Gift } from "lucide-react";
+import { format, differenceInDays, addDays } from "date-fns";
 import { getListingBySlug } from "@/lib/listings.functions";
-import { Button } from "@/components/ui/button";
+import { getPackagesForListing } from "@/lib/packages.functions";
+import { PackageCard } from "@/components/PackageCard";
+import { effectiveListingPrice, formatInr, unitLabel } from "@/lib/pricing";
+
 
 export const Route = createFileRoute("/listing/$slug")({
   component: ListingPage,
@@ -47,6 +50,17 @@ function ListingPage() {
   const stale = listing.availability_updated_at
     ? differenceInDays(new Date(), new Date(listing.availability_updated_at)) > 30
     : true;
+
+  const tiers = ((listing as any).listing_tiers ?? [])
+    .filter((tier: any) => tier.is_active)
+    .sort((a: any, b: any) => a.sort_order - b.sort_order);
+  const effectivePrice = (data as any).effective_price ?? effectiveListingPrice(listing as any);
+
+  const { data: relatedPackages } = useQuery({
+    queryKey: ["packages-for-listing", listing.id],
+    queryFn: () => getPackagesForListing({ data: { listingId: listing.id } }),
+  });
+
 
   return (
     <div className="mx-auto max-w-5xl px-4 pb-28 pt-4 md:pb-12 md:pt-8">
@@ -126,7 +140,46 @@ function ListingPage() {
               </div>
             )}
 
-            {/* Category details */}
+            {/* Package Tiers */}
+            {tiers.length >= 2 && (
+              <div className="mt-8">
+                <h2 className="flex items-center gap-2 font-serif text-lg font-semibold">
+                  <Layers className="h-5 w-5 text-primary" /> Package Tiers
+                </h2>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Pick the tier that suits your celebration — all prices are {unitLabel(listing.price_unit)}.
+                </p>
+                <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                  {tiers.map((tier: any) => (
+                    <div key={tier.id} className="flex flex-col rounded-2xl border border-border/60 bg-card p-4 shadow-sm">
+                      <p className="font-serif text-base font-semibold">{tier.name}</p>
+                      <p className="mt-1 text-xl font-semibold text-primary">{formatInr(Number(tier.price))}</p>
+                      <p className="text-xs text-muted-foreground">{unitLabel(listing.price_unit)}</p>
+                      {tier.description && <p className="mt-2 text-sm text-muted-foreground">{tier.description}</p>}
+                      {tier.features?.length ? (
+                        <ul className="mt-3 space-y-1 text-sm">
+                          {tier.features.map((feature: string, i: number) => (
+                            <li key={i} className="flex items-start gap-1.5">
+                              <Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" />
+                              <span>{feature}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      ) : null}
+                      <Link
+                        to="/request"
+                        search={{ listing: listing.id, tier: tier.id, kind: "booking_request" }}
+                        className="mt-4 block rounded-xl bg-primary px-4 py-2 text-center text-sm font-semibold text-primary-foreground hover:bg-primary/90"
+                      >
+                        Choose this tier
+                      </Link>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+
             <div className="mt-8 rounded-2xl border border-border/60 bg-card p-5 shadow-sm">
               <h2 className="font-serif text-lg font-semibold">Details</h2>
               <dl className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -189,6 +242,23 @@ function ListingPage() {
                 </div>
               )}
             </div>
+
+            {relatedPackages && relatedPackages.length > 0 && (
+              <div className="mt-8 rounded-2xl border border-border/60 bg-card p-5 shadow-sm">
+                <h2 className="flex items-center gap-2 font-serif text-lg font-semibold">
+                  <Gift className="h-5 w-5 text-primary" /> Also part of a package
+                </h2>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  This vendor bundles this service with others — often at a lower combined price.
+                </p>
+                <div className="mt-4 grid gap-4 sm:grid-cols-2">
+                  {relatedPackages.map((pkg: any) => (
+                    <PackageCard key={pkg.id} pkg={pkg} />
+                  ))}
+                </div>
+              </div>
+            )}
+
           </div>
         </div>
 
@@ -196,10 +266,14 @@ function ListingPage() {
         <aside className="lg:sticky lg:top-20 lg:h-fit">
           <div className="rounded-2xl border border-border/60 bg-card p-5 shadow-sm">
             <p className="text-sm text-muted-foreground">Starting from</p>
-            <p className="font-serif text-3xl font-semibold text-primary">
-             ₹{Number(listing.price_from).toLocaleString("en-IN")}
-            </p>
-            <p className="text-sm text-muted-foreground">/ {listing.price_unit.replace("_", " ")}</p>
+            <p className="font-serif text-3xl font-semibold text-primary">{formatInr(effectivePrice)}</p>
+            <p className="text-sm text-muted-foreground">{unitLabel(listing.price_unit)}</p>
+            {tiers.length >= 2 && (
+              <p className="mt-1 text-xs text-muted-foreground">
+                Lowest of {tiers.length} package tiers · choose your tier on the request form
+              </p>
+            )}
+
 
             <div className="mt-5 space-y-3">
               <Link
