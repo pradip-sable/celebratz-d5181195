@@ -189,6 +189,23 @@ function ListingPage() {
                 </div>
               )}
             </div>
+
+            {relatedPackages && relatedPackages.length > 0 && (
+              <div className="mt-8 rounded-2xl border border-border/60 bg-card p-5 shadow-sm">
+                <h2 className="flex items-center gap-2 font-serif text-lg font-semibold">
+                  <Gift className="h-5 w-5 text-primary" /> Also part of a package
+                </h2>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  This vendor bundles this service with others — often at a lower combined price.
+                </p>
+                <div className="mt-4 grid gap-4 sm:grid-cols-2">
+                  {relatedPackages.map((pkg: any) => (
+                    <PackageCard key={pkg.id} pkg={pkg} />
+                  ))}
+                </div>
+              </div>
+            )}
+
           </div>
         </div>
 
