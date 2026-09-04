@@ -95,8 +95,51 @@ async function resolveTarget(supabase: AnySupabase, data: RequestInput) {
   return { listingId: null, packageId: pkg.id, vendorId: pkg.vendor_id };
 }
 
+/** Public: summary of what a request is for — a listing (with its Package Tiers) or a package. */
+export const getRequestTarget = createServerFn({ method: "GET" })
+  .inputValidator((data) =>
+    z
+      .object({ listingId: z.string().uuid().optional(), packageId: z.string().uuid().optional() })
+      .parse(data),
+  )
+  .handler(async ({ data }) => {
+    const supabase = publicClient();
 
-/** Guest submission (no session). */
+    if (data.listingId) {
+      const { data: listing, error } = await supabase
+        .from("listings")
+        .select(
+          "id, title, slug, price_from, price_unit, categories(name), areas(name), listing_tiers(id, name, description, price, features, is_active, sort_order)",
+        )
+        .eq("id", data.listingId)
+        .eq("status", "live")
+        .maybeSingle();
+      if (error) throw error;
+      if (!listing) return null;
+      return { type: "listing" as const, listing };
+    }
+
+    if (data.packageId) {
+      const { data: pkg, error } = await supabase
+        .from("packages")
+        .select(
+          "id, name, slug, discount_type, discount_value, package_listings(listing:listings(id, title, price_from, price_unit, status, categories(name), listing_tiers(id, price, is_active)))",
+        )
+        .eq("id", data.packageId)
+        .eq("status", "live")
+        .maybeSingle();
+      if (error) throw error;
+      if (!pkg) return null;
+      const components = (pkg.package_listings ?? [])
+        .map((pl: any) => pl.listing)
+        .filter((l: any) => l && l.status === "live");
+      return { type: "package" as const, pkg: { ...pkg, components } };
+    }
+
+    return null;
+  });
+
+
 export const submitRequest = createServerFn({ method: "POST" })
   .inputValidator((data) => requestSchema.parse(data))
   .handler(async ({ data }) => {
