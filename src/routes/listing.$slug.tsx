@@ -126,7 +126,46 @@ function ListingPage() {
               </div>
             )}
 
-            {/* Category details */}
+            {/* Package Tiers */}
+            {tiers.length >= 2 && (
+              <div className="mt-8">
+                <h2 className="flex items-center gap-2 font-serif text-lg font-semibold">
+                  <Layers className="h-5 w-5 text-primary" /> Package Tiers
+                </h2>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Pick the tier that suits your celebration — all prices are {unitLabel(listing.price_unit)}.
+                </p>
+                <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                  {tiers.map((tier: any) => (
+                    <div key={tier.id} className="flex flex-col rounded-2xl border border-border/60 bg-card p-4 shadow-sm">
+                      <p className="font-serif text-base font-semibold">{tier.name}</p>
+                      <p className="mt-1 text-xl font-semibold text-primary">{formatInr(Number(tier.price))}</p>
+                      <p className="text-xs text-muted-foreground">{unitLabel(listing.price_unit)}</p>
+                      {tier.description && <p className="mt-2 text-sm text-muted-foreground">{tier.description}</p>}
+                      {tier.features?.length ? (
+                        <ul className="mt-3 space-y-1 text-sm">
+                          {tier.features.map((feature: string, i: number) => (
+                            <li key={i} className="flex items-start gap-1.5">
+                              <Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" />
+                              <span>{feature}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      ) : null}
+                      <Link
+                        to="/request"
+                        search={{ listing: listing.id, tier: tier.id, kind: "booking_request" }}
+                        className="mt-4 block rounded-xl bg-primary px-4 py-2 text-center text-sm font-semibold text-primary-foreground hover:bg-primary/90"
+                      >
+                        Choose this tier
+                      </Link>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+
             <div className="mt-8 rounded-2xl border border-border/60 bg-card p-5 shadow-sm">
               <h2 className="font-serif text-lg font-semibold">Details</h2>
               <dl className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
