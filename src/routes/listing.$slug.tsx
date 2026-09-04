@@ -51,6 +51,17 @@ function ListingPage() {
     ? differenceInDays(new Date(), new Date(listing.availability_updated_at)) > 30
     : true;
 
+  const tiers = ((listing as any).listing_tiers ?? [])
+    .filter((tier: any) => tier.is_active)
+    .sort((a: any, b: any) => a.sort_order - b.sort_order);
+  const effectivePrice = (data as any).effective_price ?? effectiveListingPrice(listing as any);
+
+  const { data: relatedPackages } = useQuery({
+    queryKey: ["packages-for-listing", listing.id],
+    queryFn: () => getPackagesForListing({ data: { listingId: listing.id } }),
+  });
+
+
   return (
     <div className="mx-auto max-w-5xl px-4 pb-28 pt-4 md:pb-12 md:pt-8">
       <a href="/search" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
