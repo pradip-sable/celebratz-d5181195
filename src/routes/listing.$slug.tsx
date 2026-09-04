@@ -196,10 +196,14 @@ function ListingPage() {
         <aside className="lg:sticky lg:top-20 lg:h-fit">
           <div className="rounded-2xl border border-border/60 bg-card p-5 shadow-sm">
             <p className="text-sm text-muted-foreground">Starting from</p>
-            <p className="font-serif text-3xl font-semibold text-primary">
-             ₹{Number(listing.price_from).toLocaleString("en-IN")}
-            </p>
-            <p className="text-sm text-muted-foreground">/ {listing.price_unit.replace("_", " ")}</p>
+            <p className="font-serif text-3xl font-semibold text-primary">{formatInr(effectivePrice)}</p>
+            <p className="text-sm text-muted-foreground">{unitLabel(listing.price_unit)}</p>
+            {tiers.length >= 2 && (
+              <p className="mt-1 text-xs text-muted-foreground">
+                Lowest of {tiers.length} package tiers · choose your tier on the request form
+              </p>
+            )}
+
 
             <div className="mt-5 space-y-3">
               <Link
