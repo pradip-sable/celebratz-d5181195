@@ -1,10 +1,13 @@
 import { createFileRoute, Link, useParams } from "@tanstack/react-router";
-import { useSuspenseQuery } from "@tanstack/react-query";
+import { useQuery, useSuspenseQuery } from "@tanstack/react-query";
 import { useState } from "react";
-import { MapPin, Phone, Mail, Star, Calendar, Clock, Check, AlertCircle, ChevronLeft, ChevronRight } from "lucide-react";
-import { format, differenceInDays, parseISO, addDays } from "date-fns";
+import { MapPin, Phone, Mail, Star, Clock, Check, AlertCircle, ChevronLeft, ChevronRight, Layers, Gift } from "lucide-react";
+import { format, differenceInDays, addDays } from "date-fns";
 import { getListingBySlug } from "@/lib/listings.functions";
-import { Button } from "@/components/ui/button";
+import { getPackagesForListing } from "@/lib/packages.functions";
+import { PackageCard } from "@/components/PackageCard";
+import { effectiveListingPrice, formatInr, unitLabel } from "@/lib/pricing";
+
 
 export const Route = createFileRoute("/listing/$slug")({
   component: ListingPage,
