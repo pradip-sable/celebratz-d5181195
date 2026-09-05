@@ -49,7 +49,7 @@ function AuthPage() {
 
     try {
       if (mode === "signup") {
-        const { error: signUpError } = await supabase.auth.signUp({
+        const { data, error: signUpError } = await supabase.auth.signUp({
           email,
           password,
           options: {
@@ -58,6 +58,10 @@ function AuthPage() {
           },
         });
         if (signUpError) throw signUpError;
+        if (data.session) {
+          window.location.href = returnTo;
+          return;
+        }
         setMessage("Check your email to confirm your account.");
       } else {
         const { error: signInError } = await supabase.auth.signInWithPassword({
