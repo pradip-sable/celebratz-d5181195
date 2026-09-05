@@ -89,6 +89,8 @@ export const submitReview = createServerFn({ method: "POST" })
       throw new Error("You can review after your event date has passed");
     }
 
+    if (!request.listing_id) throw new Error("This booking cannot be reviewed");
+
     const { error } = await context.supabase.from("reviews").insert({
       listing_id: request.listing_id,
       customer_id: context.userId,
