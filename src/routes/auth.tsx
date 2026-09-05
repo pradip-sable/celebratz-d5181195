@@ -9,7 +9,7 @@ import { Mail, User, Loader2 } from "lucide-react";
 const authSearchSchema = z.object({
   returnTo: z.string().optional(),
   mode: z.enum(["signin", "signup"]).optional(),
-  type: z.enum(["customer", "vendor"]).optional(),
+  type: z.enum(["customer", "vendor", "admin"]).optional(),
 });
 
 
@@ -32,7 +32,7 @@ function AuthPage() {
   const search = useSearch({ from: "/auth" });
   const returnTo = typeof search.returnTo === "string" ? search.returnTo : "/";
   const [mode, setMode] = useState<"signin" | "signup">(search.mode ?? "signin");
-  const [accountType, setAccountType] = useState<"customer" | "vendor">(search.type ?? "customer");
+  const [accountType, setAccountType] = useState<"customer" | "vendor" | "admin">(search.type ?? "customer");
 
   const [email, setEmail] = useState("");
   const [fullName, setFullName] = useState("");
@@ -156,21 +156,17 @@ function AuthPage() {
             </div>
             <div>
               <label className="mb-1.5 block text-sm font-medium">I am a</label>
-              <div className="grid grid-cols-2 gap-3">
-                <button
-                  type="button"
-                  onClick={() => setAccountType("customer")}
-                  className={`rounded-xl border px-4 py-2 text-sm font-medium ${accountType === "customer" ? "border-primary bg-primary/10 text-primary" : "border-border"}`}
-                >
-                  Customer
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setAccountType("vendor")}
-                  className={`rounded-xl border px-4 py-2 text-sm font-medium ${accountType === "vendor" ? "border-primary bg-primary/10 text-primary" : "border-border"}`}
-                >
-                  Vendor
-                </button>
+              <div className="grid grid-cols-3 gap-2">
+                {(["customer", "vendor", "admin"] as const).map((type) => (
+                  <button
+                    key={type}
+                    type="button"
+                    onClick={() => setAccountType(type)}
+                    className={`rounded-xl border px-3 py-2 text-sm font-medium capitalize ${accountType === type ? "border-primary bg-primary/10 text-primary" : "border-border"}`}
+                  >
+                    {type}
+                  </button>
+                ))}
               </div>
             </div>
           </>
