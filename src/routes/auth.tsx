@@ -191,26 +191,14 @@ function AuthPage() {
           </div>
         </div>
 
-        <div>
-          <label className="mb-1.5 block text-sm font-medium">Password</label>
-          <div className="flex items-center gap-2 rounded-xl border border-border bg-background px-3 py-2">
-            <Lock className="h-4 w-4 text-muted-foreground" />
-            <input
-              required
-              type="password"
-              minLength={6}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••"
-              className="w-full bg-transparent text-sm outline-none"
-            />
-          </div>
-        </div>
-
         <Button type="submit" disabled={loading} className="w-full rounded-xl">
           {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          {mode === "signup" ? "Create account" : "Sign in"}
+          {mode === "signup" ? "Create account" : "Continue"}
         </Button>
+        <p className="text-center text-xs text-muted-foreground">
+          No password needed for now — your email identifies your account.
+        </p>
+
       </form>
 
       <p className="mt-6 text-center text-sm text-muted-foreground">
