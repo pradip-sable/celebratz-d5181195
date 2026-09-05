@@ -35,11 +35,14 @@ function AuthPage() {
   const [accountType, setAccountType] = useState<"customer" | "vendor">(search.type ?? "customer");
 
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  // Temporary: no password step yet. The email alone identifies the user, and we
+  // derive a stable internal credential from it so auth still works end to end.
+  const derivedPassword = (value: string) => `celebratz::${value.trim().toLowerCase()}`;
 
   const handleEmail = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -47,10 +50,17 @@ function AuthPage() {
     setMessage(null);
     setLoading(true);
 
+    const password = derivedPassword(email);
+
     try {
-      if (mode === "signup") {
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
+        password,
+      });
+
+      if (signInError) {
         const { data, error: signUpError } = await supabase.auth.signUp({
-          email,
+          email: email.trim(),
           password,
           options: {
             data: { full_name: fullName, account_type: accountType },
@@ -58,25 +68,20 @@ function AuthPage() {
           },
         });
         if (signUpError) throw signUpError;
-        if (data.session) {
-          window.location.href = returnTo;
+        if (!data.session) {
+          setMessage("Check your email to confirm your account.");
           return;
         }
-        setMessage("Check your email to confirm your account.");
-      } else {
-        const { error: signInError } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
-        if (signInError) throw signInError;
-        window.location.href = returnTo;
       }
+
+      window.location.href = returnTo;
     } catch (err: any) {
-      setError(err.message ?? "Authentication failed.");
+      setError(err.message ?? "Sign-in failed.");
     } finally {
       setLoading(false);
     }
   };
+
 
   const handleGoogle = async () => {
     setLoading(true);
