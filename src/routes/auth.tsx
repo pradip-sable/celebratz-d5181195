@@ -67,7 +67,14 @@ function AuthPage() {
             emailRedirectTo: `${window.location.origin}/auth?returnTo=${encodeURIComponent(returnTo)}`,
           },
         });
-        if (signUpError) throw signUpError;
+        if (signUpError) {
+          if ((signUpError as any).code === "user_already_exists") {
+            throw new Error(
+              "This email was used with an older sign-in method. Ask the site owner to remove it, then try again with a different email.",
+            );
+          }
+          throw signUpError;
+        }
         if (!data.session) {
           setMessage("Check your email to confirm your account.");
           return;
