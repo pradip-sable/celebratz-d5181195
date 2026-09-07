@@ -43,6 +43,26 @@ export const searchListings = createServerFn({ method: "GET" })
   .handler(async ({ data }) => {
     const supabase = publicClient();
 
+    // Budget filters run in Postgres against listing_effective_prices, so a
+    // tiered listing is matched on its lowest active tier, not a stale flat price.
+    let priceMatchedIds: string[] | null = null;
+    if (data.minPrice != null || data.maxPrice != null) {
+      let priceQuery = supabase
+        .from("listing_effective_prices")
+        .select("listing_id")
+        .eq("status", "live")
+        .not("effective_price_from", "is", null);
+      if (data.minPrice != null) priceQuery = priceQuery.gte("effective_price_from", data.minPrice);
+      if (data.maxPrice != null) priceQuery = priceQuery.lte("effective_price_from", data.maxPrice);
+
+      const { data: priceRows, error: priceError } = await priceQuery;
+      if (priceError) throw priceError;
+      priceMatchedIds = (priceRows ?? [])
+        .map((row) => row.listing_id)
+        .filter((id): id is string => Boolean(id));
+      if (priceMatchedIds.length === 0) return [];
+    }
+
     const eventTypeJoin = data.eventType
       ? "listing_event_types!inner(event_types!inner(slug))"
       : "listing_event_types(event_types(slug))";
@@ -70,6 +90,10 @@ export const searchListings = createServerFn({ method: "GET" })
       .eq("status", "live")
       .order("rating_avg", { ascending: false });
 
+    if (priceMatchedIds) {
+      query = query.in("id", priceMatchedIds);
+    }
+
     if (data.category) {
       query = query.eq("categories.slug", data.category);
     }
@@ -93,16 +117,8 @@ export const searchListings = createServerFn({ method: "GET" })
     const { data: rows, error } = await query;
     if (error) throw error;
 
-    // Budget filters run on the effective price (lowest active tier, else price_from)
-    // so tiered listings are never filtered on a stale flat price.
-    return (rows ?? [])
-      .map((row) => ({ ...row, effective_price: effectiveListingPrice(row as never) }))
-      .filter((row) => {
-        const price = row.effective_price;
-        if (data.minPrice && (price == null || price < data.minPrice)) return false;
-        if (data.maxPrice && (price == null || price > data.maxPrice)) return false;
-        return true;
-      });
+    return (rows ?? []).map((row) => ({ ...row, effective_price: effectiveListingPrice(row as never) }));
+
 
   });
 
