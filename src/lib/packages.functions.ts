@@ -242,6 +242,15 @@ export const createPackage = createServerFn({ method: "POST" })
       throw new Error("A package can only bundle your own live listings");
     }
 
+    await assertFixedDiscountFitsBundle(
+      context.supabase,
+      data.discount_type,
+      data.discount_value,
+      data.listing_ids,
+    );
+
+
+
     const { data: pkg, error } = await context.supabase
       .from("packages")
       .insert({
