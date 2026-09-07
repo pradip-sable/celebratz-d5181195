@@ -53,8 +53,11 @@ export const getVendorDashboard = createServerFn({ method: "GET" })
       .from("requests")
       .select(`
         *,
-        listing:listings(id, title, slug)
+        listing:listings(id, title, slug),
+        package:packages(name),
+        tier:listing_tiers(name)
       `)
+
       .eq("vendor_id", vendor?.id ?? "00000000-0000-0000-0000-000000000000")
       .order("created_at", { ascending: false });
     if (leadsError) throw leadsError;
