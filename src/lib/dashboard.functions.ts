@@ -21,8 +21,11 @@ export const getMyRequests = createServerFn({ method: "GET" })
       .from("requests")
       .select(`
         *,
-        listing:listings(id, title, slug, category:categories(name))
+        listing:listings(id, title, slug, category:categories(name)),
+        package:packages(name),
+        tier:listing_tiers(name)
       `)
+
       .eq("customer_id", context.userId)
       .order("created_at", { ascending: false });
     if (error) throw error;
@@ -50,8 +53,11 @@ export const getVendorDashboard = createServerFn({ method: "GET" })
       .from("requests")
       .select(`
         *,
-        listing:listings(id, title, slug)
+        listing:listings(id, title, slug),
+        package:packages(name),
+        tier:listing_tiers(name)
       `)
+
       .eq("vendor_id", vendor?.id ?? "00000000-0000-0000-0000-000000000000")
       .order("created_at", { ascending: false });
     if (leadsError) throw leadsError;

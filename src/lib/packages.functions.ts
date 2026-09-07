@@ -2,7 +2,9 @@ import { createServerFn } from "@tanstack/react-start";
 import { createClient } from "@supabase/supabase-js";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { effectiveListingPrice, formatInr } from "@/lib/pricing";
 import type { Database } from "@/integrations/supabase/types";
+
 
 function publicClient() {
   const key = process.env["SUPABASE_PUBLISHABLE_KEY"]!;
@@ -183,6 +185,39 @@ function assertDiscount(type: "fixed_amount" | "percentage", value: number) {
   if (type === "percentage" && value > 90) throw new Error("A percentage discount cannot exceed 90%");
 }
 
+/** A fixed-amount discount must stay below the bundle's own value, so a package can never start from ₹0. */
+async function assertFixedDiscountFitsBundle(
+  supabase: any,
+  type: "fixed_amount" | "percentage",
+  value: number,
+  listingIds: string[],
+) {
+  if (type !== "fixed_amount") return;
+
+  const { data: rows, error } = await supabase
+    .from("listings")
+    .select("id, price_from, listing_tiers(price, is_active)")
+    .in("id", listingIds);
+  if (error) throw error;
+
+  const prices = (rows ?? [])
+    .map((row: any) => effectiveListingPrice(row))
+    .filter((price: number | null): price is number => price != null);
+  const base = prices.reduce((sum: number, price: number) => sum + price, 0);
+
+  if (base <= 0) {
+    throw new Error("Add prices to the selected services before setting a fixed-amount discount");
+  }
+  if (value >= base) {
+    throw new Error(
+      `A fixed discount of ${formatInr(value)} is not allowed — the selected services add up to ${formatInr(
+        base,
+      )}. Keep the discount below that so the package still has a price.`,
+    );
+  }
+}
+
+
 export const createPackage = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data) => packageInput.parse(data))
@@ -206,6 +241,15 @@ export const createPackage = createServerFn({ method: "POST" })
     if ((owned ?? []).length !== data.listing_ids.length) {
       throw new Error("A package can only bundle your own live listings");
     }
+
+    await assertFixedDiscountFitsBundle(
+      context.supabase,
+      data.discount_type,
+      data.discount_value,
+      data.listing_ids,
+    );
+
+
 
     const { data: pkg, error } = await context.supabase
       .from("packages")
@@ -277,6 +321,15 @@ export const updatePackage = createServerFn({ method: "POST" })
     if ((owned ?? []).length !== data.listing_ids.length) {
       throw new Error("A package can only bundle your own live listings");
     }
+
+    await assertFixedDiscountFitsBundle(
+      context.supabase,
+      data.discount_type,
+      data.discount_value,
+      data.listing_ids,
+    );
+
+
 
     // Any edit to a live package returns it to review.
     const nextStatus = existing.status === "live" || existing.status === "rejected" ? "pending" : existing.status;

@@ -150,11 +150,13 @@ export const getListingForEdit = createServerFn({ method: "GET" })
   });
 
 const tierInput = z.object({
+  id: z.string().uuid().optional(),
   name: z.string().min(1).max(80),
   description: z.string().max(600).optional(),
   price: z.coerce.number().nonnegative(),
   features: z.array(z.string().min(1).max(160)).max(20),
 });
+
 
 export const updateListing = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -180,12 +182,17 @@ export const updateListing = createServerFn({ method: "POST" })
   .handler(async ({ context, data }) => {
     const { data: existing, error: existingError } = await context.supabase
       .from("listings")
-      .select("id, status, title, category_id, price_from, price_unit, listing_tiers(name, description, price, features, sort_order, is_active)")
+      .select("id, status, title, category_id, price_from, price_unit, listing_tiers(id, name, description, price, features, sort_order, is_active)")
       .eq("id", data.listingId)
       .single();
     if (existingError) throw existingError;
 
-    const previousTiers = (existing.listing_tiers ?? [])
+    const existingTierRows = (existing.listing_tiers ?? []) as any[];
+
+    // Compare only the currently active tiers: soft-deactivated rows are history,
+    // kept alive so requests.selected_tier_id keeps pointing at what was picked.
+    const previousTiers = existingTierRows
+      .filter((t: any) => t.is_active !== false)
       .slice()
       .sort((a: any, b: any) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
       .map((t: any) => ({
@@ -193,9 +200,10 @@ export const updateListing = createServerFn({ method: "POST" })
         description: t.description ?? null,
         price: Number(t.price),
         features: t.features ?? [],
-        is_active: t.is_active !== false,
+        is_active: true,
       }));
     const nextTiers = data.tiers.map((t, index) => ({
+      id: t.id,
       name: t.name,
       description: t.description || null,
       price: Number(t.price),
@@ -204,6 +212,7 @@ export const updateListing = createServerFn({ method: "POST" })
       sort_order: index,
     }));
 
+
     // Option C: price, tiers, title and category are material edits and return a
     // live listing to review. Description, photos, area and address stay live.
     const materialEdit =
@@ -211,7 +220,8 @@ export const updateListing = createServerFn({ method: "POST" })
       Number(existing.price_from ?? 0) !== Number(data.price_from) ||
       existing.price_unit !== data.price_unit ||
       JSON.stringify(previousTiers) !==
-        JSON.stringify(nextTiers.map(({ sort_order: _sortOrder, ...rest }) => rest));
+        JSON.stringify(nextTiers.map(({ id: _id, sort_order: _sortOrder, ...rest }) => rest));
+
 
     const nextStatus = existing.status === "live" && materialEdit ? "pending" : existing.status;
 
@@ -241,13 +251,47 @@ export const updateListing = createServerFn({ method: "POST" })
       .from("listing_event_types")
       .insert(data.event_type_ids.map((event_type_id) => ({ listing_id: data.listingId, event_type_id })));
 
-    await context.supabase.from("listing_tiers").delete().eq("listing_id", data.listingId);
-    if (nextTiers.length) {
-      const { error: tierError } = await context.supabase
-        .from("listing_tiers")
-        .insert(nextTiers.map((t) => ({ ...t, listing_id: data.listingId })));
-      if (tierError) throw tierError;
+    // Tiers are synced, never deleted: a tier row may be referenced by a past
+    // request (requests.selected_tier_id), so dropped tiers are only deactivated.
+    const existingIds = new Set(existingTierRows.map((t: any) => t.id as string));
+    const keptIds = new Set(
+      nextTiers.map((t) => t.id).filter((id): id is string => Boolean(id) && existingIds.has(id!)),
+    );
+
+    for (const tier of nextTiers) {
+      const payload = {
+        name: tier.name,
+        description: tier.description,
+        price: tier.price,
+        features: tier.features,
+        sort_order: tier.sort_order,
+        is_active: true,
+      };
+      if (tier.id && existingIds.has(tier.id)) {
+        const { error: tierError } = await context.supabase
+          .from("listing_tiers")
+          .update(payload)
+          .eq("id", tier.id)
+          .eq("listing_id", data.listingId);
+        if (tierError) throw tierError;
+      } else {
+        const { error: tierError } = await context.supabase
+          .from("listing_tiers")
+          .insert({ ...payload, listing_id: data.listingId });
+        if (tierError) throw tierError;
+      }
     }
+
+    const droppedIds = [...existingIds].filter((id) => !keptIds.has(id));
+    if (droppedIds.length) {
+      const { error: deactivateError } = await context.supabase
+        .from("listing_tiers")
+        .update({ is_active: false })
+        .in("id", droppedIds)
+        .eq("listing_id", data.listingId);
+      if (deactivateError) throw deactivateError;
+    }
+
 
     return { ok: true, status: nextStatus, sentBackToReview: nextStatus === "pending" && existing.status === "live" };
   });
@@ -265,7 +309,7 @@ export const getVendorLeads = createServerFn({ method: "GET" })
 
     const { data: leads, error } = await context.supabase
       .from("requests")
-      .select("*, listing:listings(id, title, slug)")
+      .select("*, listing:listings(id, title, slug), package:packages(name), tier:listing_tiers(name)")
       .eq("vendor_id", vendor.id)
       .order("created_at", { ascending: false });
     if (error) throw error;
