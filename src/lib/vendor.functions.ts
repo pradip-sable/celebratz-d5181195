@@ -150,11 +150,13 @@ export const getListingForEdit = createServerFn({ method: "GET" })
   });
 
 const tierInput = z.object({
+  id: z.string().uuid().optional(),
   name: z.string().min(1).max(80),
   description: z.string().max(600).optional(),
   price: z.coerce.number().nonnegative(),
   features: z.array(z.string().min(1).max(160)).max(20),
 });
+
 
 export const updateListing = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
