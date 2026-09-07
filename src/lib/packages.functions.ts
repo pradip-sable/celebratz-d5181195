@@ -322,6 +322,15 @@ export const updatePackage = createServerFn({ method: "POST" })
       throw new Error("A package can only bundle your own live listings");
     }
 
+    await assertFixedDiscountFitsBundle(
+      context.supabase,
+      data.discount_type,
+      data.discount_value,
+      data.listing_ids,
+    );
+
+
+
     // Any edit to a live package returns it to review.
     const nextStatus = existing.status === "live" || existing.status === "rejected" ? "pending" : existing.status;
 
