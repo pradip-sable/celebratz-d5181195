@@ -187,7 +187,12 @@ export const updateListing = createServerFn({ method: "POST" })
       .single();
     if (existingError) throw existingError;
 
-    const previousTiers = (existing.listing_tiers ?? [])
+    const existingTierRows = (existing.listing_tiers ?? []) as any[];
+
+    // Compare only the currently active tiers: soft-deactivated rows are history,
+    // kept alive so requests.selected_tier_id keeps pointing at what was picked.
+    const previousTiers = existingTierRows
+      .filter((t: any) => t.is_active !== false)
       .slice()
       .sort((a: any, b: any) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
       .map((t: any) => ({
@@ -195,9 +200,10 @@ export const updateListing = createServerFn({ method: "POST" })
         description: t.description ?? null,
         price: Number(t.price),
         features: t.features ?? [],
-        is_active: t.is_active !== false,
+        is_active: true,
       }));
     const nextTiers = data.tiers.map((t, index) => ({
+      id: t.id,
       name: t.name,
       description: t.description || null,
       price: Number(t.price),
@@ -205,6 +211,7 @@ export const updateListing = createServerFn({ method: "POST" })
       is_active: true,
       sort_order: index,
     }));
+
 
     // Option C: price, tiers, title and category are material edits and return a
     // live listing to review. Description, photos, area and address stay live.
