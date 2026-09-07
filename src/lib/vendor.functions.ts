@@ -309,7 +309,7 @@ export const getVendorLeads = createServerFn({ method: "GET" })
 
     const { data: leads, error } = await context.supabase
       .from("requests")
-      .select("*, listing:listings(id, title, slug)")
+      .select("*, listing:listings(id, title, slug), package:packages(name), tier:listing_tiers(name)")
       .eq("vendor_id", vendor.id)
       .order("created_at", { ascending: false });
     if (error) throw error;
