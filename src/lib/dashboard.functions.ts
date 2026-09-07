@@ -21,8 +21,11 @@ export const getMyRequests = createServerFn({ method: "GET" })
       .from("requests")
       .select(`
         *,
-        listing:listings(id, title, slug, category:categories(name))
+        listing:listings(id, title, slug, category:categories(name)),
+        package:packages(name),
+        tier:listing_tiers(name)
       `)
+
       .eq("customer_id", context.userId)
       .order("created_at", { ascending: false });
     if (error) throw error;
