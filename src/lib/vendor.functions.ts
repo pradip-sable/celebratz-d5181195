@@ -220,7 +220,8 @@ export const updateListing = createServerFn({ method: "POST" })
       Number(existing.price_from ?? 0) !== Number(data.price_from) ||
       existing.price_unit !== data.price_unit ||
       JSON.stringify(previousTiers) !==
-        JSON.stringify(nextTiers.map(({ sort_order: _sortOrder, ...rest }) => rest));
+        JSON.stringify(nextTiers.map(({ id: _id, sort_order: _sortOrder, ...rest }) => rest));
+
 
     const nextStatus = existing.status === "live" && materialEdit ? "pending" : existing.status;
 
