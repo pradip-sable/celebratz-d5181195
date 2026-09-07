@@ -251,13 +251,47 @@ export const updateListing = createServerFn({ method: "POST" })
       .from("listing_event_types")
       .insert(data.event_type_ids.map((event_type_id) => ({ listing_id: data.listingId, event_type_id })));
 
-    await context.supabase.from("listing_tiers").delete().eq("listing_id", data.listingId);
-    if (nextTiers.length) {
-      const { error: tierError } = await context.supabase
-        .from("listing_tiers")
-        .insert(nextTiers.map((t) => ({ ...t, listing_id: data.listingId })));
-      if (tierError) throw tierError;
+    // Tiers are synced, never deleted: a tier row may be referenced by a past
+    // request (requests.selected_tier_id), so dropped tiers are only deactivated.
+    const existingIds = new Set(existingTierRows.map((t: any) => t.id as string));
+    const keptIds = new Set(
+      nextTiers.map((t) => t.id).filter((id): id is string => Boolean(id) && existingIds.has(id!)),
+    );
+
+    for (const tier of nextTiers) {
+      const payload = {
+        name: tier.name,
+        description: tier.description,
+        price: tier.price,
+        features: tier.features,
+        sort_order: tier.sort_order,
+        is_active: true,
+      };
+      if (tier.id && existingIds.has(tier.id)) {
+        const { error: tierError } = await context.supabase
+          .from("listing_tiers")
+          .update(payload)
+          .eq("id", tier.id)
+          .eq("listing_id", data.listingId);
+        if (tierError) throw tierError;
+      } else {
+        const { error: tierError } = await context.supabase
+          .from("listing_tiers")
+          .insert({ ...payload, listing_id: data.listingId });
+        if (tierError) throw tierError;
+      }
     }
+
+    const droppedIds = [...existingIds].filter((id) => !keptIds.has(id));
+    if (droppedIds.length) {
+      const { error: deactivateError } = await context.supabase
+        .from("listing_tiers")
+        .update({ is_active: false })
+        .in("id", droppedIds)
+        .eq("listing_id", data.listingId);
+      if (deactivateError) throw deactivateError;
+    }
+
 
     return { ok: true, status: nextStatus, sentBackToReview: nextStatus === "pending" && existing.status === "live" };
   });
