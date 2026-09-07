@@ -182,7 +182,7 @@ export const updateListing = createServerFn({ method: "POST" })
   .handler(async ({ context, data }) => {
     const { data: existing, error: existingError } = await context.supabase
       .from("listings")
-      .select("id, status, title, category_id, price_from, price_unit, listing_tiers(name, description, price, features, sort_order, is_active)")
+      .select("id, status, title, category_id, price_from, price_unit, listing_tiers(id, name, description, price, features, sort_order, is_active)")
       .eq("id", data.listingId)
       .single();
     if (existingError) throw existingError;
