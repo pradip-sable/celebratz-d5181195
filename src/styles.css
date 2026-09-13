@@ -1,6 +1,30 @@
+@import url('https://fonts.cdnfonts.com/css/agrandir');
 @import "tailwindcss" source(none);
 @source "../src";
 @import "tw-animate-css";
+
+@font-face {
+  font-family: 'Agrandir Grand';
+  src: local('Agrandir Grand'), 
+       local('Agrandir Grand Heavy'), 
+       local('Agrandir-Grand'), 
+       local('Agrandir-GrandHeavy'), 
+       local('Agrandir Heavy'), 
+       local('Agrandir-Heavy'), 
+       local('Agrandir-Black'), 
+       local('Agrandir Black'), 
+       local('Agrandir Bold'), 
+       local('Agrandir'), 
+       url('https://fonts.cdnfonts.com/s/122717/agrandir-heavy.woff') format('woff');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+.font-brand {
+  font-family: 'Agrandir Grand', 'Agrandir', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  letter-spacing: -0.03em;
+}
 
 @custom-variant dark (&:is(.dark *));
 
@@ -65,6 +89,18 @@
   --color-cream-foreground: var(--cream-foreground);
   --color-rose: var(--rose);
   --color-rose-foreground: var(--rose-foreground);
+  --color-primary-dark: var(--primary-dark);
+  --color-primary-subtle: var(--primary-subtle);
+  --color-primary-light: var(--primary-light);
+  --color-secondary-dark: var(--secondary-dark);
+  --color-secondary-subtle: var(--secondary-subtle);
+  --color-secondary-light: var(--secondary-light);
+  --color-accent-dark: var(--accent-dark);
+  --color-accent-light: var(--accent-light);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-subtle: var(--accent-subtle);
+  --color-border-subtle: var(--border-subtle);
+  --font-brand: 'Agrandir Grand', 'Agrandir', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
 :root {
@@ -81,8 +117,19 @@
   --secondary-foreground: oklch(0.32 0.05 260);
   --muted: oklch(0.94 0.015 80);
   --muted-foreground: oklch(0.52 0.04 260);
-  --accent: oklch(0.93 0.03 60);
-  --accent-foreground: oklch(0.32 0.05 260);
+  --accent: #d97706;
+  --accent-foreground: #ffffff;
+  --accent-hover: #b45309;
+  --accent-dark: #92400e;
+  --accent-light: #fde68a;
+  --accent-subtle: #fef3c7;
+  --primary-dark: #042f2e;
+  --primary-subtle: #f0fdfa;
+  --primary-light: #ccfbf1;
+  --secondary-subtle: #fffbeb;
+  --secondary-light: #fef3c7;
+  --secondary-dark: #92400e;
+  --border-subtle: #f5f5f4;
   --destructive: oklch(0.57 0.22 25);
   --destructive-foreground: oklch(0.99 0.01 80);
   --border: oklch(0.88 0.02 80);
@@ -126,8 +173,19 @@
   --secondary-foreground: oklch(0.96 0.01 80);
   --muted: oklch(0.3 0.04 260);
   --muted-foreground: oklch(0.72 0.04 260);
-  --accent: oklch(0.3 0.05 60);
-  --accent-foreground: oklch(0.96 0.01 80);
+  --accent: #d97706;
+  --accent-foreground: #ffffff;
+  --accent-hover: #b45309;
+  --accent-dark: #78350f;
+  --accent-light: #fde68a;
+  --accent-subtle: #451a03;
+  --primary-dark: #021a19;
+  --primary-subtle: #042f2e;
+  --primary-light: #0f766e;
+  --secondary-subtle: #451a03;
+  --secondary-light: #92400e;
+  --secondary-dark: #fde68a;
+  --border-subtle: #292524;
   --destructive: oklch(0.65 0.22 25);
   --destructive-foreground: oklch(0.99 0.01 80);
   --border: oklch(1 0 0 / 12%);

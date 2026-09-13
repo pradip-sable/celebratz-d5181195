@@ -30,7 +30,7 @@ export function Layout({ children }: { children: ReactNode }) {
       <header className="sticky top-0 z-40 border-b border-border/40 bg-background/95 backdrop-blur">
         <div className="mx-auto flex h-14 max-w-5xl items-center justify-between px-4">
           <Link to="/" className="flex items-center gap-2">
-            <span className="font-serif text-xl font-semibold text-primary">Celebratz</span>
+            <span className="font-brand text-xl font-bold text-primary">Celebratz</span>
           </Link>
           <nav className="hidden items-center gap-6 text-sm font-medium md:flex">
             <Link to="/search" className="hover:text-primary">
@@ -71,7 +71,7 @@ export function Layout({ children }: { children: ReactNode }) {
       <footer className="border-t border-border/40 bg-muted/30 py-8 text-sm text-muted-foreground">
         <div className="mx-auto max-w-5xl px-4">
           <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
-            <span className="font-serif text-lg font-semibold text-foreground">Celebratz</span>
+            <span className="font-brand text-lg font-bold text-foreground">Celebratz</span>
             <div className="flex flex-wrap gap-4">
               <Link to="/about" className="hover:text-foreground">
                 About
