@@ -16,7 +16,6 @@ import {
   CheckCircle2,
   Users,
   X,
-  Check,
 } from "lucide-react";
 import {
   Select,
@@ -30,13 +29,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from "@/components/ui/dialog";
 import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
 
@@ -135,21 +127,8 @@ const DEFAULT_EVENT_TYPES = [
   { slug: "corporate", name: "Corporate Event" },
 ];
 
-const CITIES = [
-  { id: "pune", name: "Pune", state: "Maharashtra", status: "active", badge: "Live Marketplace", hubs: "Baner, Koregaon Park, Kothrud, Wakad, Viman Nagar" },
-  { id: "mumbai", name: "Mumbai", state: "Maharashtra", status: "upcoming", badge: "Coming Soon • Phase 2", hubs: "Bandra, Juhu, Andheri, Powai, South Mumbai" },
-  { id: "bengaluru", name: "Bengaluru", state: "Karnataka", status: "upcoming", badge: "Coming Soon • Phase 2", hubs: "Indiranagar, Koramangala, Whitefield, HSR" },
-  { id: "delhi", name: "Delhi NCR", state: "Delhi", status: "upcoming", badge: "Coming Soon • Phase 2", hubs: "Gurugram, South Delhi, Noida, Chattarpur" },
-  { id: "hyderabad", name: "Hyderabad", state: "Telangana", status: "upcoming", badge: "Coming Soon • Phase 2", hubs: "Gachibowli, Banjara Hills, Jubilee Hills, Hitec City" },
-  { id: "goa", name: "Goa", state: "Goa", status: "upcoming", badge: "Coming Soon • Phase 2", hubs: "North Goa Luxury Lawns, South Goa Beach Venues" },
-];
-
 export function HomeHero({ categories, eventTypes, areas }: HomeHeroProps) {
   const navigate = useNavigate();
-
-  const [activeCity, setActiveCity] = useState("Pune");
-  const [isCitySelectorOpen, setIsCitySelectorOpen] = useState(false);
-  const [citySearchQuery, setCitySearchQuery] = useState("");
 
   const [area, setArea] = useState<string>("all");
   const [eventType, setEventType] = useState<string>("all");
@@ -165,14 +144,6 @@ export function HomeHero({ categories, eventTypes, areas }: HomeHeroProps) {
     eventTypes.forEach((et) => map.set(et.slug, et));
     return Array.from(map.values());
   }, [eventTypes]);
-
-  const filteredCities = useMemo(() => {
-    if (!citySearchQuery.trim()) return CITIES;
-    const q = citySearchQuery.toLowerCase();
-    return CITIES.filter(
-      (c) => c.name.toLowerCase().includes(q) || c.state.toLowerCase().includes(q) || c.hubs.toLowerCase().includes(q)
-    );
-  }, [citySearchQuery]);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -200,27 +171,18 @@ export function HomeHero({ categories, eventTypes, areas }: HomeHeroProps) {
 
         <div className="relative z-10 max-w-5xl mx-auto text-center space-y-4">
           <div className="flex items-center justify-center gap-2">
-            <button
-              type="button"
-              onClick={() => setIsCitySelectorOpen(true)}
-              className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-accent/20 hover:bg-accent/30 border border-accent/40 text-accent-light text-xs font-semibold tracking-wide transition-colors cursor-pointer"
-            >
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-accent/20 border border-accent/40 text-accent-light text-xs font-semibold tracking-wide">
               <Sparkles className="w-3.5 h-3.5 text-accent" />
-              <span>{activeCity}’s Premier Celebration Marketplace</span>
-              <span className="px-1.5 py-0.2 rounded bg-accent/30 text-[10px] text-accent-light font-bold">
-                Switch City
-              </span>
-            </button>
+              <span>Pune’s Premier Celebration Marketplace</span>
+            </div>
           </div>
 
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-serif font-extrabold tracking-tight text-accent-light leading-tight">
-            Discover &amp; Compare Top Venues &amp; Event Services in {activeCity}
+            Discover &amp; Compare Top Venues &amp; Event Services in Pune
           </h1>
 
           <p className="text-muted-foreground text-sm sm:text-base max-w-2xl mx-auto font-light leading-relaxed">
-            {activeCity === "Pune"
-              ? "Directly connect with vetted banquet halls, caterers, photographers, decorators, DJs, and Vedic pandits. Check availability, compare transparent pricing, and request walk-throughs in minutes."
-              : `Explore upcoming venues, curated decorators, and celebration spaces across ${activeCity}. Currently operating live in Pune with multi-city expansion underway.`}
+            Directly connect with vetted banquet halls, caterers, photographers, decorators, DJs, and Vedic pandits. Check availability, compare transparent pricing, and request walk-throughs in minutes.
           </p>
 
           {/* Prominent Multi-Segment Search Bar - button guaranteed inside form on all screen sizes */}
@@ -233,14 +195,14 @@ export function HomeHero({ categories, eventTypes, areas }: HomeHeroProps) {
               <MapPin className="w-4 h-4 text-primary shrink-0" />
               <div className="w-full min-w-0">
                 <label className="block text-[10px] uppercase font-bold tracking-wider text-muted-foreground truncate">
-                  Location ({activeCity})
+                  Location (Pune)
                 </label>
                 <Select value={area} onValueChange={setArea}>
                   <SelectTrigger className="h-7 w-full min-w-0 border-0 bg-transparent p-0 shadow-none text-xs sm:text-sm font-semibold text-foreground focus:ring-0 [&>span]:truncate cursor-pointer">
-                    <SelectValue placeholder={`All ${activeCity} Neighborhoods`} />
+                    <SelectValue placeholder="All Pune Neighborhoods" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">All {activeCity} Neighborhoods</SelectItem>
+                    <SelectItem value="all">All Pune Neighborhoods</SelectItem>
                     {areas.map((a) => (
                       <SelectItem key={a.slug} value={a.slug}>
                         {a.name}
@@ -388,79 +350,6 @@ export function HomeHero({ categories, eventTypes, areas }: HomeHeroProps) {
         </div>
       </section>
 
-      {/* City Selector Modal */}
-      <Dialog open={isCitySelectorOpen} onOpenChange={setIsCitySelectorOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-lg font-serif">
-              <Sparkles className="w-5 h-5 text-accent" />
-              Select Celebration City
-            </DialogTitle>
-            <DialogDescription className="text-xs">
-              Celebratz is live in Pune and expanding to premier celebration destinations across India.
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="space-y-4 pt-2">
-            <div className="relative">
-              <Search className="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2" />
-              <input
-                type="text"
-                placeholder="Search Indian cities..."
-                value={citySearchQuery}
-                onChange={(e) => setCitySearchQuery(e.target.value)}
-                className="w-full pl-9 pr-3 py-2 text-sm rounded-xl border border-border bg-muted/40 outline-hidden focus:border-accent"
-              />
-            </div>
-
-            <div className="space-y-2 max-h-72 overflow-y-auto pr-1">
-              {filteredCities.map((c) => {
-                const isActive = c.name === activeCity;
-                const isLive = c.status === "active";
-                return (
-                  <button
-                    key={c.id}
-                    type="button"
-                    onClick={() => {
-                      if (isLive) {
-                        setActiveCity(c.name);
-                        setIsCitySelectorOpen(false);
-                      }
-                    }}
-                    className={cn(
-                      "w-full p-3 rounded-xl border text-left flex items-center justify-between transition-all cursor-pointer",
-                      isActive
-                        ? "border-accent bg-accent/10 shadow-2xs"
-                        : isLive
-                        ? "border-border hover:border-accent/60 bg-white dark:bg-card"
-                        : "border-border/50 bg-muted/20 opacity-75 cursor-not-allowed"
-                    )}
-                  >
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="font-bold text-sm text-foreground">{c.name}</span>
-                        <span className="text-xs text-muted-foreground">({c.state})</span>
-                        {isActive && <Check className="w-3.5 h-3.5 text-accent font-bold" />}
-                      </div>
-                      <p className="text-[11px] text-muted-foreground mt-0.5">{c.hubs}</p>
-                    </div>
-                    <span
-                      className={cn(
-                        "text-[10px] font-semibold px-2 py-0.5 rounded-full border",
-                        isLive
-                          ? "bg-emerald-500/15 text-emerald-700 border-emerald-500/30"
-                          : "bg-muted text-muted-foreground border-border"
-                      )}
-                    >
-                      {c.badge}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
 
       {/* 2. 6 Service Categories Grid - 100% matching source layout, typography, icon boxes, and badges */}
       <section className="space-y-4">
