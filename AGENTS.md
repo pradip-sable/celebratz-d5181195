@@ -28,6 +28,8 @@ session:
   that touches schema shape. DO NOT modify these unless explicitly instructed
   in the task — even if a UI change seems to require a backend tweak, flag it
   instead of making it, so it can be routed through Lovable.
+- **Do not add multi-city UI, switchers, or expansion messaging anywhere — Phase 1 is Pune-only, 
+  no exceptions, even if it seems like a natural feature to include.
 
 ### Backend conventions already in place (read, don't reinvent)
 - Server functions live in `src/lib/*.functions.ts`: `listings.functions.ts`,
