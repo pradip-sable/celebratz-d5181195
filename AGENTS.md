@@ -28,8 +28,6 @@ session:
   that touches schema shape. DO NOT modify these unless explicitly instructed
   in the task — even if a UI change seems to require a backend tweak, flag it
   instead of making it, so it can be routed through Lovable.
-- **Do not add multi-city UI, switchers, or expansion messaging anywhere — Phase 1 is Pune-only, 
-  no exceptions, even if it seems like a natural feature to include.
 
 ### Backend conventions already in place (read, don't reinvent)
 - Server functions live in `src/lib/*.functions.ts`: `listings.functions.ts`,
@@ -54,6 +52,36 @@ as literal classes — they represent content type, not brand theme.
 Never edit a file here in Lovable's web editor and via this agent in the same
 work session — pick one direction per session to avoid merge conflicts. Push
 only to `main` (Lovable only syncs from `main`).
+
+### Scope guardrail — no multi-city features
+Celebratz Phase 1 is Pune-only, with no exceptions. Never add city switchers,
+city search, "expanding to other cities" messaging, or any multi-city UI —
+even if it seems like a natural or expected feature to include. This has been
+caught and removed twice already (an admin expansion roadmap, and a city
+selector modal) — treat any urge to add city-switching functionality as a
+signal to stop and ask first, not build it.
+
+### Visual fidelity when porting a screen from AI Studio
+When a task references an AI Studio component as the source/reference file,
+match it exactly across ALL CSS properties, not just colors:
+- **Non-color properties**: padding, margin, gap, width/height, flex/grid
+  layout, border-radius, border-width, box-shadow, font-size, font-weight,
+  line-height, letter-spacing, and responsive breakpoint behavior (sm/md/lg)
+  — match these directly from the reference file.
+- **Colors**: follow the semantic-token rule above, not the reference file's
+  literal classes — colors are the one property that gets translated to this
+  repo's tokens, not copied verbatim.
+- **Fonts**: match which elements use font-serif vs font-brand (or any other
+  font utility) exactly as the reference file does, element by element — do
+  not assume a heading should get the brand font just because it's a heading.
+  Agrandir Grand (font-brand) applies only to the brand wordmark/logo, nowhere
+  else, regardless of what element type is being styled.
+- **Completeness check**: after building the component, do a final pass
+  confirming no element from the reference (button, icon, badge, label, link,
+  modal) was missed or silently dropped.
+- If a required Tailwind utility, spacing token, or CSS variable doesn't exist
+  yet in this repo, add it — don't approximate with the nearest available
+  class.
 
 ### Reference doc
 See `celebratz-lovable-port-checklist.md` (if present in repo root, or ask
