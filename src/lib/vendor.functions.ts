@@ -141,7 +141,7 @@ export const getListingForEdit = createServerFn({ method: "GET" })
     const { data: listing, error } = await context.supabase
       .from("listings")
       .select(
-        "id, title, description, category_id, area_id, address, price_from, price_unit, status, listing_attributes(field_key, value), listing_event_types(event_type_id), listing_tiers(id, name, description, price, features, sort_order, is_active)",
+        "id, title, description, category_id, area_id, address, google_maps_url, category_attributes, price_from, price_unit, status, listing_attributes(field_key, value), listing_event_types(event_type_id), listing_tiers(id, name, description, price, features, sort_order, is_active)",
       )
       .eq("id", data.listingId)
       .single();
@@ -168,6 +168,8 @@ export const updateListing = createServerFn({ method: "POST" })
         description: z.string().min(20).max(4000),
         area_id: z.string().uuid(),
         address: z.string().max(300).optional(),
+        google_maps_url: z.string().url().max(2000).optional().or(z.literal("")),
+        category_attributes: z.record(z.any()).default({}),
         price_from: z.coerce.number().nonnegative(),
         price_unit: z.enum(["per_day", "per_plate", "per_hour", "per_event"]),
         attributes: z.record(z.any()),
@@ -232,6 +234,8 @@ export const updateListing = createServerFn({ method: "POST" })
         description: data.description,
         area_id: data.area_id,
         address: data.address ?? null,
+        google_maps_url: data.google_maps_url || null,
+        category_attributes: data.category_attributes,
         price_from: data.price_from,
         price_unit: data.price_unit,
         status: nextStatus,

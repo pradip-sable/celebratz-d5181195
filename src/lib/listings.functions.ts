@@ -81,6 +81,9 @@ export const searchListings = createServerFn({ method: "GET" })
         rating_avg,
         review_count,
         availability_updated_at,
+        is_featured,
+        google_maps_url,
+        category_attributes,
         categories!inner(name, slug, icon),
         areas!inner(name, slug),
         listing_media(storage_path, type, position),
@@ -201,8 +204,9 @@ export const getHomeData = createServerFn({ method: "GET" })
       supabase.from("areas").select("id, name, slug").order("name"),
       supabase
         .from("listings")
-        .select("id, title, slug, price_from, price_unit, rating_avg, review_count, categories(name, slug), areas(name, slug), listing_media(storage_path), listing_tiers(id, name, price, is_active)")
+        .select("id, title, slug, price_from, price_unit, rating_avg, review_count, is_featured, google_maps_url, category_attributes, categories(name, slug), areas(name, slug), listing_media(storage_path), listing_tiers(id, name, price, is_active)")
         .eq("status", "live")
+        .order("is_featured", { ascending: false })
         .order("rating_avg", { ascending: false })
         .limit(6),
     ]);
