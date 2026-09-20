@@ -91,6 +91,8 @@ export const createListing = createServerFn({ method: "POST" })
       price_from: z.coerce.number().nonnegative(),
       price_unit: z.enum(["per_day", "per_plate", "per_hour", "per_event"]),
       address: z.string().max(300).optional(),
+      google_maps_url: z.string().url().max(2000).optional().or(z.literal("")),
+      category_attributes: z.record(z.any()).default({}),
       attributes: z.record(z.any()),
       event_type_ids: z.array(z.string().uuid()).min(1),
       tiers: z
@@ -129,6 +131,8 @@ export const createListing = createServerFn({ method: "POST" })
         price_from: data.price_from,
         price_unit: data.price_unit,
         address: data.address ?? null,
+        google_maps_url: data.google_maps_url || null,
+        category_attributes: data.category_attributes,
         status: "pending",
       })
       .select("id")
