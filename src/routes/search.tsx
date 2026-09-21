@@ -1,9 +1,10 @@
 import { createFileRoute, useSearch } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { useState } from "react";
-import { Search, MapPin, Calendar, SlidersHorizontal, Star } from "lucide-react";
+import { Search, MapPin, Calendar, SlidersHorizontal } from "lucide-react";
 import { z } from "zod";
 import { searchListings } from "@/lib/listings.functions";
+import { ListingCard } from "@/components/ListingCard";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 
@@ -225,37 +226,3 @@ function SearchPage() {
   );
 }
 
-function ListingCard({ listing }: { listing: any }) {
-  const image = listing.listing_media?.[0]?.storage_path ?? "https://images.unsplash.com/photo-1519225421980-715cb0215aed?w=600&q=80";
-  return (
-    <a href={`/listing/${listing.slug}`} className="group overflow-hidden rounded-2xl border border-border/60 bg-card shadow-sm transition hover:shadow-md">
-      <div className="relative aspect-[4/3] overflow-hidden">
-        <img
-          src={image}
-          alt={listing.title}
-          className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
-          loading="lazy"
-        />
-        <span className="absolute left-3 top-3 rounded-full bg-background/90 px-2.5 py-1 text-xs font-medium backdrop-blur">
-          {listing.categories?.name}
-        </span>
-      </div>
-      <div className="p-4">
-        <div className="flex items-start justify-between gap-2">
-          <h3 className="line-clamp-1 font-medium">{listing.title}</h3>
-          {listing.rating_avg ? (
-            <span className="flex shrink-0 items-center gap-1 text-xs font-medium">
-              <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
-              {listing.rating_avg.toFixed(1)}
-            </span>
-          ) : null}
-        </div>
-        <p className="mt-1 text-sm text-muted-foreground">{listing.areas?.name}</p>
-        <p className="mt-3 text-sm font-semibold text-primary">
-          ₹{Number(listing.price_from).toLocaleString("en-IN")}
-          <span className="font-normal text-muted-foreground"> / {listing.price_unit.replace("_", " ")}</span>
-        </p>
-      </div>
-    </a>
-  );
-}
