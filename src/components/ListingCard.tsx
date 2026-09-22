@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate, Link } from "@tanstack/react-router";
+import { useNavigate } from "@tanstack/react-router";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Heart, MapPin, Star, Users, Scale, Clock, ArrowRight } from "lucide-react";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 import { effectiveListingPrice, formatInr, unitLabel, type TierLike } from "@/lib/pricing";
 import { toggleWishlist, getWishlist } from "@/lib/engagement.functions";
 
@@ -38,13 +39,24 @@ export type ListingCardData = {
 
 export interface ListingCardProps {
   listing: ListingCardData;
-  layout?: "grid" | "detailed_list" | "compact_bento";
   isFeatured?: boolean;
   isSaved?: boolean;
   isCompared?: boolean;
   onToggleWishlist?: (listingId: string) => void;
   onToggleComparison?: (listingId: string) => void;
   onEnquire?: (listing: ListingCardData) => void;
+}
+
+function resolveListingMediaUrl(storagePathOrUrl: string | null | undefined): string | null {
+  if (!storagePathOrUrl) return null;
+  if (storagePathOrUrl.startsWith("http://") || storagePathOrUrl.startsWith("https://")) {
+    return storagePathOrUrl;
+  }
+  const bucket = "listing-media";
+  const cleanPath = storagePathOrUrl.startsWith(`${bucket}/`)
+    ? storagePathOrUrl.slice(bucket.length + 1)
+    : storagePathOrUrl;
+  return supabase.storage.from(bucket).getPublicUrl(cleanPath).data.publicUrl;
 }
 
 function getDaysAgoText(isoString: string | null | undefined): {
@@ -80,7 +92,6 @@ function getGoogleMapsDirectionsUrl(item: {
 
 export function ListingCard({
   listing,
-  layout = "grid",
   isFeatured: isFeaturedProp,
   isSaved: isSavedProp,
   isCompared: isComparedProp,
@@ -150,9 +161,9 @@ export function ListingCard({
   const isCompared = isComparedProp !== undefined ? isComparedProp : localCompared;
 
   // Resolved fields
+  const rawCoverPath = listing.coverImage || listing.listing_media?.[0]?.storage_path;
   const coverImage =
-    listing.coverImage ||
-    listing.listing_media?.[0]?.storage_path ||
+    resolveListingMediaUrl(rawCoverPath) ||
     "https://images.unsplash.com/photo-1519225421980-715cb0215aed?w=600&q=80";
 
   const categoryName = listing.categories?.name || listing.category || "Celebration Service";
@@ -178,6 +189,7 @@ export function ListingCard({
     (typeof listing.categoryAttributes?.capacityMin === "number"
       ? listing.categoryAttributes.capacityMin
       : undefined);
+
   const capacityMax =
     listing.capacity_max ??
     (typeof listing.categoryAttributes?.capacityMax === "number"
@@ -197,11 +209,6 @@ export function ListingCard({
     typeof listing.categoryAttributes?.soundWattage === "string"
       ? listing.categoryAttributes.soundWattage
       : undefined;
-
-  const eventTypesList =
-    listing.listing_event_types?.map((et) => et.event_types?.name).filter(Boolean) ||
-    listing.eventTypes ||
-    [];
 
   const handleCardClick = () => {
     navigate({
@@ -252,226 +259,6 @@ export function ListingCard({
     }
   };
 
-  // 1. HORIZONTAL DETAILED LIST VIEW MODE
-  if (layout === "detailed_list") {
-    return (
-      <div
-        onClick={handleCardClick}
-        className="group bg-card rounded-2xl border border-border hover:border-accent hover:shadow-lg transition-all p-4 cursor-pointer flex flex-col sm:flex-row gap-4 relative select-none"
-      >
-        {/* Thumbnail Image */}
-        <div className="sm:w-64 h-48 sm:h-auto rounded-xl overflow-hidden relative shrink-0">
-          <img
-            src={coverImage}
-            alt={listing.title}
-            loading="lazy"
-            referrerPolicy="no-referrer"
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-          />
-          <div className="absolute top-2 left-2 flex gap-1">
-            <span className="px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider bg-primary-dark/80 text-accent backdrop-blur-xs">
-              {categoryName}
-            </span>
-          </div>
-
-          <button
-            type="button"
-            onClick={handleWishlistClick}
-            aria-label={isSaved ? "Remove from wishlist" : "Add to wishlist"}
-            className="absolute top-2 right-2 p-1.5 rounded-full bg-white/90 text-foreground hover:text-destructive backdrop-blur-xs shadow-xs transition-colors cursor-pointer"
-          >
-            <Heart className={`w-4 h-4 ${isSaved ? "fill-destructive text-destructive" : ""}`} />
-          </button>
-        </div>
-
-        {/* Content Body */}
-        <div className="flex-1 flex flex-col justify-between space-y-3">
-          <div>
-            <div className="flex items-start justify-between gap-2">
-              <div>
-                <div className="flex items-center gap-1.5 text-xs text-muted-foreground font-medium mb-0.5">
-                  <a
-                    href={getGoogleMapsDirectionsUrl({
-                      title: listing.title,
-                      locality,
-                      address: listing.address,
-                      googleMapsUrl: listing.googleMapsUrl,
-                    })}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    onClick={(e) => e.stopPropagation()}
-                    className="inline-flex items-center gap-1 hover:text-primary transition-colors group/loc cursor-pointer"
-                    title="Open in Google Maps"
-                  >
-                    <MapPin className="w-3.5 h-3.5 text-primary shrink-0 group-hover/loc:text-destructive" />
-                    <span className="group-hover/loc:underline">{locality}, Pune</span>
-                  </a>
-                </div>
-                <h3 className="font-serif font-bold text-base sm:text-lg text-foreground group-hover:text-primary transition-colors">
-                  {listing.title}
-                </h3>
-              </div>
-
-              {/* Rating */}
-              <div className="flex items-center gap-1 bg-accent-subtle/40 px-2 py-1 rounded-lg border border-accent/30 shrink-0">
-                <Star className="w-3.5 h-3.5 fill-accent text-accent" />
-                <span className="text-xs font-bold text-foreground">{ratingValue}</span>
-                <span className="text-[10px] text-muted-foreground">({reviewCount})</span>
-              </div>
-            </div>
-
-            {listing.description && (
-              <p className="text-xs text-muted-foreground line-clamp-2 mt-2 leading-relaxed">
-                {listing.description}
-              </p>
-            )}
-
-            {/* Tags */}
-            <div className="flex flex-wrap items-center gap-1.5 mt-3">
-              {eventTypesList.slice(0, 3).map((et) => (
-                <span
-                  key={String(et)}
-                  className="text-[10px] px-2 py-0.5 rounded-full bg-muted text-foreground font-medium"
-                >
-                  {String(et)}
-                </span>
-              ))}
-              {(categorySlug === "venues" || categorySlug === "venue") &&
-                (capacityMax || capacityMin) && (
-                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-primary-subtle text-primary font-medium flex items-center gap-1">
-                    <Users className="w-3 h-3" />
-                    Up to {capacityMax || capacityMin} guests
-                  </span>
-                )}
-            </div>
-
-            {/* Response Time Badge */}
-            <div className="mt-2.5 inline-flex items-center gap-1.5 text-[11px] text-primary bg-primary-subtle px-2.5 py-0.5 rounded-full border border-border-subtle font-medium">
-              <Clock className="w-3 h-3 text-primary shrink-0" />
-              <span>Response time: Usually within 2 hours</span>
-            </div>
-          </div>
-
-          {/* Footer with Staleness Badge & Pricing */}
-          <div className="pt-3 border-t border-border-subtle flex flex-wrap items-center justify-between gap-2">
-            <div className="flex items-center gap-3">
-              <div>
-                <span className="text-[10px] text-muted-foreground block uppercase font-semibold">
-                  Starting From
-                </span>
-                <div className="flex items-baseline gap-1">
-                  <span className="font-extrabold text-base text-foreground font-serif">
-                    {formattedPrice}
-                  </span>
-                  <span className="text-xs text-muted-foreground">
-                    /{priceUnitStr.replace("per ", "")}
-                  </span>
-                </div>
-              </div>
-
-              {/* Staleness radar */}
-              <div className="hidden md:flex items-center gap-1 text-[11px] font-medium text-muted-foreground bg-muted/40 px-2 py-1 rounded-md border border-border">
-                <Clock className="w-3 h-3 text-muted-foreground" />
-                <span>{daysAgoText}</span>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={handleComparisonClick}
-                className={`px-2.5 py-1.5 rounded-lg text-xs font-semibold border flex items-center gap-1 transition-colors cursor-pointer ${
-                  isCompared
-                    ? "bg-accent-subtle text-accent-dark border-accent"
-                    : "bg-card hover:bg-muted/40 text-foreground border-border"
-                }`}
-              >
-                <Scale className="w-3.5 h-3.5" />
-                <span>{isCompared ? "Compared" : "Compare"}</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={handleEnquireClick}
-                className="px-4 py-1.5 rounded-lg text-xs font-bold bg-primary hover:bg-primary/90 text-primary-foreground shadow-xs transition-all cursor-pointer"
-              >
-                Enquire / Book
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // 2. COMPACT BENTO GRID VIEW MODE
-  if (layout === "compact_bento") {
-    return (
-      <div
-        onClick={handleCardClick}
-        className="group bg-card rounded-xl border border-border hover:border-accent hover:shadow-md transition-all p-3 cursor-pointer flex flex-col justify-between space-y-2 select-none"
-      >
-        <div className="h-36 rounded-lg overflow-hidden relative">
-          <img
-            src={coverImage}
-            alt={listing.title}
-            loading="lazy"
-            referrerPolicy="no-referrer"
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-          />
-          <span className="absolute top-1.5 left-1.5 px-2 py-0.5 rounded text-[9px] font-bold uppercase bg-primary-dark/80 text-accent backdrop-blur-xs">
-            {locality}
-          </span>
-          <button
-            type="button"
-            onClick={handleWishlistClick}
-            aria-label={isSaved ? "Remove from wishlist" : "Add to wishlist"}
-            className="absolute top-1.5 right-1.5 p-1 rounded-full bg-white/90 text-foreground hover:text-destructive shadow-xs cursor-pointer"
-          >
-            <Heart
-              className={`w-3.5 h-3.5 ${isSaved ? "fill-destructive text-destructive" : ""}`}
-            />
-          </button>
-        </div>
-
-        <div>
-          <div className="flex items-center justify-between text-[11px] text-muted-foreground mb-0.5">
-            <span className="capitalize">{categoryName}</span>
-            <div className="flex items-center gap-0.5 font-bold text-foreground">
-              <Star className="w-3 h-3 fill-accent text-accent" />
-              <span>{ratingValue}</span>
-            </div>
-          </div>
-          <h4 className="font-bold text-xs sm:text-sm text-foreground line-clamp-1 group-hover:text-primary transition-colors">
-            {listing.title}
-          </h4>
-
-          {/* Subtle Response Time Badge */}
-          <div className="mt-1.5 inline-flex items-center gap-1 text-[10px] text-primary bg-primary-subtle px-2 py-0.5 rounded-md border border-border-subtle font-medium">
-            <Clock className="w-2.5 h-2.5 text-primary shrink-0" />
-            <span>Responds within 2 hrs</span>
-          </div>
-        </div>
-
-        <div className="pt-2 border-t border-border-subtle flex items-center justify-between">
-          <div>
-            <span className="text-[9px] text-muted-foreground block">From</span>
-            <span className="font-bold text-xs text-foreground font-serif">{formattedPrice}</span>
-          </div>
-          <button
-            type="button"
-            onClick={handleCardClick}
-            className="text-[11px] font-bold text-primary hover:text-accent flex items-center gap-0.5 cursor-pointer"
-          >
-            <span>Details</span>
-            <ArrowRight className="w-3 h-3" />
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  // 3. SPACIOUS CARDS (DEFAULT HIGH VISUAL LUXURY)
   return (
     <div
       onClick={handleCardClick}
