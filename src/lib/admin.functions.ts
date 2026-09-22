@@ -78,6 +78,21 @@ export const setPackageStatusAdmin = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+export const setListingFeatured = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data) =>
+    z.object({ listingId: z.string().uuid(), isFeatured: z.boolean() }).parse(data),
+  )
+  .handler(async ({ context, data }) => {
+    await assertAdmin(context);
+    const { error } = await context.supabase
+      .from("listings")
+      .update({ is_featured: data.isFeatured })
+      .eq("id", data.listingId);
+    if (error) throw error;
+    return { ok: true };
+  });
+
 
 export const setVendorStatus = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])

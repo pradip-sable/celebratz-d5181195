@@ -369,10 +369,13 @@ export type Database = {
           availability_updated_at: string | null
           capacity_max: number | null
           capacity_min: number | null
+          category_attributes: Json | null
           category_id: string
           created_at: string
           description: string | null
+          google_maps_url: string | null
           id: string
+          is_featured: boolean
           price_from: number | null
           price_unit: Database["public"]["Enums"]["price_unit"]
           rating_avg: number | null
@@ -389,10 +392,13 @@ export type Database = {
           availability_updated_at?: string | null
           capacity_max?: number | null
           capacity_min?: number | null
+          category_attributes?: Json | null
           category_id: string
           created_at?: string
           description?: string | null
+          google_maps_url?: string | null
           id?: string
+          is_featured?: boolean
           price_from?: number | null
           price_unit?: Database["public"]["Enums"]["price_unit"]
           rating_avg?: number | null
@@ -409,10 +415,13 @@ export type Database = {
           availability_updated_at?: string | null
           capacity_max?: number | null
           capacity_min?: number | null
+          category_attributes?: Json | null
           category_id?: string
           created_at?: string
           description?: string | null
+          google_maps_url?: string | null
           id?: string
+          is_featured?: boolean
           price_from?: number | null
           price_unit?: Database["public"]["Enums"]["price_unit"]
           rating_avg?: number | null
