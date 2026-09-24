@@ -1,7 +1,7 @@
 import { Link, useLocation } from "@tanstack/react-router";
-import { Search, Heart, CalendarDays, User, Home } from "lucide-react";
 import { ReactNode } from "react";
 import { Navbar } from "@/components/Navbar";
+import { MobileBottomNav } from "@/components/MobileBottomNav";
 
 export function Layout({ children }: { children: ReactNode }) {
   const { pathname } = useLocation();
@@ -13,7 +13,7 @@ export function Layout({ children }: { children: ReactNode }) {
 
       <main className="flex-1">{children}</main>
 
-      <footer className="border-t border-border/40 bg-muted/30 py-8 text-sm text-muted-foreground">
+      <footer className="border-t border-border/40 bg-muted/30 py-8 text-sm text-muted-foreground pb-24 md:pb-8">
         <div className="mx-auto max-w-5xl px-4">
           <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
             <span className="font-brand text-lg font-bold text-foreground">Celebratz</span>
@@ -33,38 +33,15 @@ export function Layout({ children }: { children: ReactNode }) {
               <Link to="/for-vendors" className="hover:text-foreground">
                 List your business
               </Link>
-
             </div>
           </div>
-          <p className="mt-4">© {new Date().getFullYear()} Celebratz. Celebrations made simple in Pune.</p>
+          <p className="mt-4">
+            © {new Date().getFullYear()} Celebratz. Celebrations made simple in Pune.
+          </p>
         </div>
       </footer>
 
-      {!hideNav && (
-        <nav className="fixed bottom-0 left-0 right-0 z-40 border-t border-border/40 bg-background pb-safe md:hidden">
-          <div className="mx-auto flex max-w-md justify-around py-2">
-            <MobileNavItem to="/" icon={Home} label="Home" />
-            <MobileNavItem to="/search" icon={Search} label="Search" />
-            <MobileNavItem to="/dashboard" icon={CalendarDays} label="Bookings" />
-            <MobileNavItem to="/wishlist" icon={Heart} label="Wishlist" />
-            <MobileNavItem to="/account/profile" icon={User} label="Profile" />
-          </div>
-        </nav>
-      )}
+      {!hideNav && <MobileBottomNav />}
     </div>
-  );
-}
-
-function MobileNavItem({ to, icon: Icon, label }: { to: string; icon: typeof Home; label: string }) {
-  const { pathname } = useLocation();
-  const active = pathname === to || pathname.startsWith(`${to}/`);
-  return (
-    <Link
-      to={to}
-      className={`flex flex-col items-center gap-0.5 px-3 py-1 text-xs ${active ? "text-primary" : "text-muted-foreground"}`}
-    >
-      <Icon className="h-5 w-5" />
-      <span>{label}</span>
-    </Link>
   );
 }
