@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { effectiveListingPrice, formatInr, unitLabel, type TierLike } from "@/lib/pricing";
 import { toggleWishlist, getWishlist } from "@/lib/engagement.functions";
+import { toggleComparisonId } from "@/hooks/useComparison";
 
 export type ListingCardData = {
   id: string;
@@ -232,18 +233,9 @@ export function ListingCard({
       onToggleComparison(listing.id);
       return;
     }
-    try {
-      const list: string[] = JSON.parse(localStorage.getItem("celebratz_comparison") || "[]");
-      const next = list.includes(listing.id)
-        ? list.filter((id) => id !== listing.id)
-        : [...list, listing.id];
-      localStorage.setItem("celebratz_comparison", JSON.stringify(next));
-      const nowCompared = next.includes(listing.id);
-      setLocalCompared(nowCompared);
-      toast.success(nowCompared ? "Added to comparison" : "Removed from comparison");
-      window.dispatchEvent(new Event("storage"));
-    } catch {
-      toast.error("Could not update comparison list");
+    const result = toggleComparisonId(listing.id);
+    if (result.success) {
+      setLocalCompared(result.isCompared);
     }
   };
 

@@ -1,28 +1,36 @@
-@import url('https://fonts.cdnfonts.com/css/agrandir');
+@import url("https://fonts.cdnfonts.com/css/agrandir");
 @import "tailwindcss" source(none);
 @source "../src";
 @import "tw-animate-css";
 
 @font-face {
-  font-family: 'Agrandir Grand';
-  src: local('Agrandir Grand'), 
-       local('Agrandir Grand Heavy'), 
-       local('Agrandir-Grand'), 
-       local('Agrandir-GrandHeavy'), 
-       local('Agrandir Heavy'), 
-       local('Agrandir-Heavy'), 
-       local('Agrandir-Black'), 
-       local('Agrandir Black'), 
-       local('Agrandir Bold'), 
-       local('Agrandir'), 
-       url('https://fonts.cdnfonts.com/s/122717/agrandir-heavy.woff') format('woff');
+  font-family: "Agrandir Grand";
+  src:
+    local("Agrandir Grand"),
+    local("Agrandir Grand Heavy"),
+    local("Agrandir-Grand"),
+    local("Agrandir-GrandHeavy"),
+    local("Agrandir Heavy"),
+    local("Agrandir-Heavy"),
+    local("Agrandir-Black"),
+    local("Agrandir Black"),
+    local("Agrandir Bold"),
+    local("Agrandir"),
+    url("https://fonts.cdnfonts.com/s/122717/agrandir-heavy.woff") format("woff");
   font-weight: 100 900;
   font-style: normal;
   font-display: swap;
 }
 
 .font-brand {
-  font-family: 'Agrandir Grand', 'Agrandir', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family:
+    "Agrandir Grand",
+    "Agrandir",
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
+    sans-serif;
   letter-spacing: -0.03em;
 }
 
@@ -100,7 +108,10 @@
   --color-accent-hover: var(--accent-hover);
   --color-accent-subtle: var(--accent-subtle);
   --color-border-subtle: var(--border-subtle);
-  --font-brand: 'Agrandir Grand', 'Agrandir', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --color-surface-dark: var(--surface-dark);
+  --color-surface-dark-foreground: var(--surface-dark-foreground);
+  --font-brand:
+    "Agrandir Grand", "Agrandir", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 
 :root {
@@ -130,6 +141,8 @@
   --secondary-light: #fef3c7;
   --secondary-dark: #92400e;
   --border-subtle: #f5f5f4;
+  --surface-dark: #000000;
+  --surface-dark-foreground: #ffffff;
   --destructive: oklch(0.57 0.22 25);
   --destructive-foreground: oklch(0.99 0.01 80);
   --border: oklch(0.88 0.02 80);
@@ -186,6 +199,8 @@
   --secondary-light: #92400e;
   --secondary-dark: #fde68a;
   --border-subtle: #292524;
+  --surface-dark: #000000;
+  --surface-dark-foreground: #ffffff;
   --destructive: oklch(0.65 0.22 25);
   --destructive-foreground: oklch(0.99 0.01 80);
   --border: oklch(1 0 0 / 12%);
@@ -224,10 +239,21 @@
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
-    font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-family:
+      "Inter",
+      system-ui,
+      -apple-system,
+      BlinkMacSystemFont,
+      "Segoe UI",
+      sans-serif;
   }
 
-  h1, h2, h3, h4, h5, h6 {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     font-family: "Playfair Display", Georgia, "Times New Roman", serif;
     font-weight: 600;
   }

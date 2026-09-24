@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as CompareRouteImport } from './routes/compare'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as ForVendorsRouteImport } from './routes/for-vendors'
 import { Route as PackagesRouteImport } from './routes/packages'
@@ -54,6 +55,11 @@ const AboutRoute = AboutRouteImport.update({
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CompareRoute = CompareRouteImport.update({
+  id: '/compare',
+  path: '/compare',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ContactRoute = ContactRouteImport.update({
@@ -183,6 +189,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/auth': typeof AuthRoute
+  '/compare': typeof CompareRoute
   '/contact': typeof ContactRoute
   '/for-vendors': typeof ForVendorsRoute
   '/packages': typeof PackagesRouteWithChildren
@@ -211,6 +218,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/auth': typeof AuthRoute
+  '/compare': typeof CompareRoute
   '/contact': typeof ContactRoute
   '/for-vendors': typeof ForVendorsRoute
   '/privacy': typeof PrivacyRoute
@@ -240,6 +248,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/about': typeof AboutRoute
   '/auth': typeof AuthRoute
+  '/compare': typeof CompareRoute
   '/contact': typeof ContactRoute
   '/for-vendors': typeof ForVendorsRoute
   '/packages': typeof PackagesRouteWithChildren
@@ -270,6 +279,7 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/auth'
+    | '/compare'
     | '/contact'
     | '/for-vendors'
     | '/packages'
@@ -298,6 +308,7 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/auth'
+    | '/compare'
     | '/contact'
     | '/for-vendors'
     | '/privacy'
@@ -326,6 +337,7 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/about'
     | '/auth'
+    | '/compare'
     | '/contact'
     | '/for-vendors'
     | '/packages'
@@ -356,6 +368,7 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AboutRoute: typeof AboutRoute
   AuthRoute: typeof AuthRoute
+  CompareRoute: typeof CompareRoute
   ContactRoute: typeof ContactRoute
   ForVendorsRoute: typeof ForVendorsRoute
   PackagesRoute: typeof PackagesRouteWithChildren
@@ -396,6 +409,13 @@ declare module '@tanstack/react-router' {
       path: '/auth'
       fullPath: '/auth'
       preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/compare': {
+      id: '/compare'
+      path: '/compare'
+      fullPath: '/compare'
+      preLoaderRoute: typeof CompareRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/contact': {
@@ -614,6 +634,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AboutRoute: AboutRoute,
   AuthRoute: AuthRoute,
+  CompareRoute: CompareRoute,
   ContactRoute: ContactRoute,
   ForVendorsRoute: ForVendorsRoute,
   PackagesRoute: PackagesRouteWithChildren,

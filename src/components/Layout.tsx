@@ -2,10 +2,12 @@ import { Link, useLocation } from "@tanstack/react-router";
 import { ReactNode } from "react";
 import { Navbar } from "@/components/Navbar";
 import { MobileBottomNav } from "@/components/MobileBottomNav";
+import { ComparisonBar } from "@/components/ComparisonBar";
 
 export function Layout({ children }: { children: ReactNode }) {
   const { pathname } = useLocation();
   const hideNav = pathname.startsWith("/auth") || pathname.startsWith("/request");
+  const isComparePage = pathname === "/compare";
 
   return (
     <div className="flex min-h-screen flex-col bg-background font-sans text-foreground">
@@ -41,6 +43,7 @@ export function Layout({ children }: { children: ReactNode }) {
         </div>
       </footer>
 
+      {!hideNav && !isComparePage && <ComparisonBar />}
       {!hideNav && <MobileBottomNav />}
     </div>
   );
