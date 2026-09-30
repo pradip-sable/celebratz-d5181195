@@ -16,29 +16,73 @@ export const Route = createFileRoute("/terms")({
 
 function Terms() {
   return (
-    <div className="mx-auto max-w-3xl px-4 py-10 md:py-16">
-      <h1 className="font-serif text-3xl font-semibold">Terms of Service</h1>
-      <p className="mt-4 text-sm text-muted-foreground">Last updated: {new Date().toLocaleDateString("en-IN")}</p>
-      <div className="mt-6 space-y-4 leading-relaxed text-foreground/90">
-        <p>
-          By using Celebratz, you agree to these Terms of Service. If you do not agree, please do not use the platform.
-        </p>
-        <h2 className="font-serif text-xl font-semibold">Service description</h2>
-        <p>
-          Celebratz is a discovery and lead-generation marketplace. We do not process payments or guarantee bookings. All pricing, contracts and payments are negotiated directly between you and the vendor.
-        </p>
-        <h2 className="font-serif text-xl font-semibold">User accounts</h2>
-        <p>
-          You must provide accurate information when creating an account. You are responsible for maintaining the confidentiality of your account credentials.
-        </p>
-        <h2 className="font-serif text-xl font-semibold">Vendor listings</h2>
-        <p>
-          Vendor listings are reviewed before going live. We reserve the right to remove listings that violate our policies or mislead users.
-        </p>
-        <h2 className="font-serif text-xl font-semibold">Contact</h2>
-        <p>
-          For questions about these terms, email <a href="mailto:celebratz@gmail.com" className="text-primary hover:underline">celebratz@gmail.com</a>.
-        </p>
+    <div className="max-w-4xl mx-auto py-8 px-4 space-y-6 text-foreground text-left pb-24">
+      <div className="border-b border-border pb-4">
+        <span className="text-[10px] font-bold uppercase tracking-wider text-accent block">
+          Legal & Trust &bull; Pune Launch
+        </span>
+        <h1 className="font-serif font-extrabold text-2xl sm:text-3xl text-foreground mt-1">
+          Terms of Service
+        </h1>
+        <p className="text-xs text-muted-foreground mt-1">Last updated: August 2026</p>
+      </div>
+
+      <div className="space-y-4 text-xs sm:text-sm leading-relaxed text-foreground font-light">
+        <section className="space-y-2">
+          <h3 className="font-bold text-base text-foreground">
+            1. Nature of the Marketplace Platform
+          </h3>
+          <p>
+            Celebratz serves solely as an information, discovery, comparison, and lead transmission
+            bridge between prospective event hosts and independent vendor businesses in Pune, India.
+          </p>
+        </section>
+
+        <section className="space-y-2 p-4 bg-muted border border-border/80 rounded-2xl">
+          <h3 className="font-bold text-base text-foreground">
+            2. No In-App Financial Transactions / Offline Contracting
+          </h3>
+          <p className="text-xs text-foreground font-medium">
+            Celebratz does not process advance booking payments, security deposits, or digital
+            payment checkouts for event venues or vendor services.
+          </p>
+          <p className="text-xs text-muted-foreground">
+            All price negotiations, physical site inspections, service contracts, cancellation
+            policies, and monetary exchanges occur directly and privately between the customer and
+            the vendor outside the Celebratz web app.
+          </p>
+        </section>
+
+        <section className="space-y-2">
+          <h3 className="font-bold text-base text-foreground">
+            3. Availability Calendar Disclaimers
+          </h3>
+          <p>
+            Availability statuses (Available, Tentative, Booked) and pricing tiers are maintained
+            directly by registered vendors. Celebratz prominently displays a &ldquo;Last updated X
+            days ago&rdquo; indicator and flags stale calendars to assist users, but cannot
+            guarantee venue availability if vendor updates lag.
+          </p>
+        </section>
+
+        <section className="space-y-2">
+          <h3 className="font-bold text-base text-foreground">4. User Conduct & Inquiries</h3>
+          <p>
+            Customers agree to provide genuine contact details and valid celebration requirements
+            when requesting bookings or enquiries.
+          </p>
+        </section>
+
+        <section className="space-y-2">
+          <h3 className="font-bold text-base text-foreground">5. Support & Inquiries</h3>
+          <p>
+            For support inquiries or vendor onboarding assistance, please email{" "}
+            <a href="mailto:celebratzapp@gmail.com" className="text-primary font-bold underline">
+              celebratzapp@gmail.com
+            </a>
+            .
+          </p>
+        </section>
       </div>
     </div>
   );
