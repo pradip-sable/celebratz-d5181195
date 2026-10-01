@@ -497,7 +497,7 @@ export const RequestEnquireModal: React.FC<RequestEnquireModalProps> = ({
         {/* Modal Body */}
         {isSubmitted ? (
           <div className="p-8 text-center space-y-4 my-auto">
-            <div className="w-14 h-14 rounded-full bg-emerald-500/15 text-emerald-600 flex items-center justify-center mx-auto shadow-sm">
+            <div className="w-14 h-14 rounded-full bg-success/15 text-success flex items-center justify-center mx-auto shadow-sm">
               <CheckCircle2 className="w-8 h-8" />
             </div>
             <h4 className="font-serif font-extrabold text-2xl text-foreground">
@@ -887,7 +887,7 @@ export const RequestEnquireModal: React.FC<RequestEnquireModalProps> = ({
                                   )}
                                 </div>
                                 {savings > 0 && (
-                                  <span className="text-[9px] font-bold text-emerald-600 block">
+                                  <span className="text-[9px] font-bold text-success block">
                                     Save {formatInr(savings)} ({savingsPct}% OFF)
                                   </span>
                                 )}
@@ -1192,7 +1192,7 @@ export const RequestEnquireModal: React.FC<RequestEnquireModalProps> = ({
                   <div
                     className={`flex items-center bg-card border rounded-xl px-3 py-2 transition-colors ${
                       isPhoneMatching
-                        ? "border-emerald-500 bg-emerald-500/10"
+                        ? "border-success bg-success/10"
                         : isPhoneMismatch
                         ? "border-destructive/50 bg-destructive/10"
                         : "border-border"
@@ -1213,7 +1213,7 @@ export const RequestEnquireModal: React.FC<RequestEnquireModalProps> = ({
                       className="w-full bg-transparent text-xs font-medium text-foreground outline-hidden"
                     />
                     {isPhoneMatching && (
-                      <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 ml-1" />
+                      <CheckCircle2 className="w-4 h-4 text-success shrink-0 ml-1" />
                     )}
                   </div>
                 </div>
