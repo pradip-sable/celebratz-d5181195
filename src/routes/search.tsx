@@ -1,12 +1,12 @@
-import { createFileRoute, useSearch } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, useSearch } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { useState } from "react";
-import { Search, MapPin, Calendar, SlidersHorizontal } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Search, SlidersHorizontal, X, MapPin, Calendar, Users } from "lucide-react";
 import { z } from "zod";
-import { searchListings } from "@/lib/listings.functions";
+import { searchListings, getHomeData } from "@/lib/listings.functions";
 import { ListingCard } from "@/components/ListingCard";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { Button } from "@/components/ui/button";
+import { SearchFiltersBottomSheet } from "@/components/SearchFiltersBottomSheet";
+import { formatInr } from "@/lib/pricing";
 
 const searchSchema = z.object({
   q: z.string().optional(),
@@ -25,17 +25,31 @@ export const Route = createFileRoute("/search")({
   validateSearch: searchSchema,
   loaderDeps: ({ search }) => search,
   loader: async ({ context, deps }) => {
-    await context.queryClient.ensureQueryData({
-      queryKey: ["listings", deps],
-      queryFn: () => searchListings({ data: deps }),
-    });
+    await Promise.all([
+      context.queryClient.ensureQueryData({
+        queryKey: ["listings", deps],
+        queryFn: () => searchListings({ data: deps }),
+      }),
+      context.queryClient.ensureQueryData({
+        queryKey: ["home"],
+        queryFn: getHomeData,
+      }),
+    ]);
   },
   head: () => ({
     meta: [
       { title: "Search celebrations in Pune | Celebratz" },
-      { name: "description", content: "Search and compare venues, photographers, caterers, decorators, DJs and pandits for your celebration in Pune." },
+      {
+        name: "description",
+        content:
+          "Search and compare venues, photographers, caterers, decorators, DJs and pandits for your celebration in Pune.",
+      },
       { property: "og:title", content: "Search celebrations in Pune | Celebratz" },
-      { property: "og:description", content: "Search and compare venues, photographers, caterers, decorators, DJs and pandits for your celebration in Pune." },
+      {
+        property: "og:description",
+        content:
+          "Search and compare venues, photographers, caterers, decorators, DJs and pandits for your celebration in Pune.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -44,185 +58,314 @@ export const Route = createFileRoute("/search")({
 
 function SearchPage() {
   const search = useSearch({ from: "/search" });
+  const navigate = useNavigate();
+
   const { data: listings } = useSuspenseQuery({
     queryKey: ["listings", search],
     queryFn: () => searchListings({ data: search }),
   });
 
-  const [filters, setFilters] = useState({
-    q: search.q ?? "",
-    area: search.area ?? "",
-    date: search.date ?? "",
-    minPrice: search.minPrice?.toString() ?? "",
-    maxPrice: search.maxPrice?.toString() ?? "",
-    minCapacity: search.minCapacity?.toString() ?? "",
-    maxCapacity: search.maxCapacity?.toString() ?? "",
+  const { data: homeData } = useSuspenseQuery({
+    queryKey: ["home"],
+    queryFn: getHomeData,
   });
 
-  const updateSearch = () => {
-    const params = new URLSearchParams();
-    if (filters.q) params.set("q", filters.q);
-    if (filters.area) params.set("area", filters.area);
-    if (filters.date) params.set("date", filters.date);
-    if (filters.minPrice) params.set("minPrice", filters.minPrice);
-    if (filters.maxPrice) params.set("maxPrice", filters.maxPrice);
-    if (filters.minCapacity) params.set("minCapacity", filters.minCapacity);
-    if (filters.maxCapacity) params.set("maxCapacity", filters.maxCapacity);
-    if (search.category) params.set("category", search.category);
-    if (search.eventType) params.set("eventType", search.eventType);
-    window.location.href = `/search?${params.toString()}`;
+  const [isFiltersOpen, setIsFiltersOpen] = useState(false);
+  const [searchInput, setSearchInput] = useState(search.q ?? "");
+
+  // Sync search input with search.q query param
+  useEffect(() => {
+    setSearchInput(search.q ?? "");
+  }, [search.q]);
+
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    navigate({
+      to: "/search",
+      search: {
+        ...search,
+        q: searchInput.trim() || undefined,
+      },
+    });
   };
 
-  const FilterForm = () => (
-    <div className="space-y-5">
-      <div>
-        <label className="mb-1.5 block text-sm font-medium">Keyword</label>
-        <div className="flex items-center gap-2 rounded-xl border border-border bg-background px-3 py-2">
-          <Search className="h-4 w-4 text-muted-foreground" />
-          <input
-            value={filters.q}
-            onChange={(e) => setFilters((f) => ({ ...f, q: e.target.value }))}
-            placeholder="Banquet hall, DJ..."
-            className="w-full bg-transparent text-sm outline-none"
-          />
-        </div>
-      </div>
+  const handleClearSearch = () => {
+    setSearchInput("");
+    navigate({
+      to: "/search",
+      search: {
+        ...search,
+        q: undefined,
+      },
+    });
+  };
 
-      <div>
-        <label className="mb-1.5 block text-sm font-medium">Area in Pune</label>
-        <div className="flex items-center gap-2 rounded-xl border border-border bg-background px-3 py-2">
-          <MapPin className="h-4 w-4 text-muted-foreground" />
-          <input
-            value={filters.area}
-            onChange={(e) => setFilters((f) => ({ ...f, area: e.target.value }))}
-            placeholder="e.g. Koregaon Park"
-            className="w-full bg-transparent text-sm outline-none"
-          />
-        </div>
-      </div>
-
-      <div>
-        <label className="mb-1.5 block text-sm font-medium">Date</label>
-        <div className="flex items-center gap-2 rounded-xl border border-border bg-background px-3 py-2">
-          <Calendar className="h-4 w-4 text-muted-foreground" />
-          <input
-            type="date"
-            value={filters.date}
-            onChange={(e) => setFilters((f) => ({ ...f, date: e.target.value }))}
-            className="w-full bg-transparent text-sm outline-none"
-          />
-        </div>
-      </div>
-
-      <div className="grid grid-cols-2 gap-3">
-        <div>
-          <label className="mb-1.5 block text-sm font-medium">Min price</label>
-          <input
-            type="number"
-            value={filters.minPrice}
-            onChange={(e) => setFilters((f) => ({ ...f, minPrice: e.target.value }))}
-            placeholder="₹"
-            className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none"
-          />
-        </div>
-        <div>
-          <label className="mb-1.5 block text-sm font-medium">Max price</label>
-          <input
-            type="number"
-            value={filters.maxPrice}
-            onChange={(e) => setFilters((f) => ({ ...f, maxPrice: e.target.value }))}
-            placeholder="₹"
-            className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none"
-          />
-        </div>
-      </div>
-
-      <div className="grid grid-cols-2 gap-3">
-        <div>
-          <label className="mb-1.5 block text-sm font-medium">Min capacity</label>
-          <input
-            type="number"
-            value={filters.minCapacity}
-            onChange={(e) => setFilters((f) => ({ ...f, minCapacity: e.target.value }))}
-            placeholder="Guests"
-            className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none"
-          />
-        </div>
-        <div>
-          <label className="mb-1.5 block text-sm font-medium">Max capacity</label>
-          <input
-            type="number"
-            value={filters.maxCapacity}
-            onChange={(e) => setFilters((f) => ({ ...f, maxCapacity: e.target.value }))}
-            placeholder="Guests"
-            className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none"
-          />
-        </div>
-      </div>
-
-      <Button onClick={updateSearch} className="w-full rounded-xl">
-        Apply filters
-      </Button>
-    </div>
+  const hasActiveFilters = Boolean(
+    (search.category && search.category !== "all") ||
+      (search.area && search.area !== "all") ||
+      (search.eventType && search.eventType !== "all") ||
+      search.date ||
+      search.minCapacity ||
+      search.maxPrice ||
+      search.q,
   );
 
+  const selectedAreaName = homeData.areas.find((a) => a.slug === search.area)?.name;
+  const selectedEventTypeName = homeData.eventTypes.find((e) => e.slug === search.eventType)?.name;
+
   return (
-    <div className="mx-auto max-w-6xl px-4 pb-28 pt-6 md:pb-12">
-      <div className="flex flex-col gap-6 md:flex-row">
-        <aside className="hidden w-72 shrink-0 md:block">
-          <div className="sticky top-20 rounded-2xl border border-border/60 bg-card p-5 shadow-sm">
-            <h2 className="font-serif text-lg font-semibold">Filters</h2>
-            <div className="mt-4">
-              <FilterForm />
-            </div>
-          </div>
-        </aside>
-
-        <div className="flex-1">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="font-serif text-2xl font-semibold">
-                {search.category ? listings[0]?.categories?.name ?? "Listings" : "All listings"}
-              </h1>
-              <p className="mt-1 text-sm text-muted-foreground">
-                {listings.length} result{listings.length !== 1 ? "s" : ""}
-              </p>
-            </div>
-            <Sheet>
-              <SheetTrigger asChild>
-                <Button variant="outline" className="rounded-xl md:hidden">
-                  <SlidersHorizontal className="mr-2 h-4 w-4" />
-                  Filters
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="bottom" className="rounded-t-2xl pb-8">
-                <SheetHeader>
-                  <SheetTitle>Filters</SheetTitle>
-                </SheetHeader>
-                <div className="mt-6">
-                  <FilterForm />
-                </div>
-              </SheetContent>
-            </Sheet>
+    <div className="mx-auto max-w-6xl px-4 pb-28 pt-6 md:pb-12 space-y-6">
+      {/* Search Header Bar (matching AI Studio App.tsx:206-241 & 293-322) */}
+      <div className="bg-card rounded-3xl p-4 sm:p-6 border border-border shadow-2xs space-y-4">
+        <form
+          onSubmit={handleSearchSubmit}
+          className="flex flex-col sm:flex-row gap-3 items-center justify-between"
+        >
+          {/* Keyword Search Input */}
+          <div className="relative flex-1 w-full">
+            <Search className="w-4 h-4 text-muted-foreground absolute left-3.5 top-1/2 -translate-y-1/2" />
+            <input
+              type="text"
+              placeholder='Search with phrases like "Wedding venue in Baner", "Kothrud banquet", "Catering in Hadapsar"...'
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              className="w-full pl-10 pr-10 py-2.5 bg-muted/40 border border-border rounded-2xl text-xs sm:text-sm text-foreground font-medium placeholder:text-muted-foreground focus:outline-hidden focus:border-primary transition-colors"
+            />
+            {searchInput && (
+              <button
+                type="button"
+                onClick={handleClearSearch}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground p-1 cursor-pointer"
+                title="Clear search"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            )}
           </div>
 
-          <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {listings.map((listing: any) => (
-              <ListingCard key={listing.id} listing={listing} />
-            ))}
-          </div>
+          {/* Filter Trigger Button */}
+          <button
+            type="button"
+            onClick={() => setIsFiltersOpen(true)}
+            className="w-full sm:w-auto px-4 py-2.5 bg-primary hover:bg-primary-dark text-accent-subtle rounded-2xl text-xs font-bold flex items-center justify-center gap-2 shadow-xs transition-all shrink-0 cursor-pointer"
+          >
+            <SlidersHorizontal className="w-4 h-4 text-accent" />
+            <span>Filter Options</span>
+            {hasActiveFilters && <span className="w-2 h-2 rounded-full bg-accent" />}
+          </button>
+        </form>
 
-          {listings.length === 0 && (
-            <div className="mt-12 rounded-2xl border border-dashed border-border p-10 text-center">
-              <p className="text-muted-foreground">No listings match your filters.</p>
-              <Button variant="outline" onClick={() => (window.location.href = "/search")} className="mt-4 rounded-xl">
-                Clear filters
-              </Button>
-            </div>
-          )}
+        {/* Category Quick Pills */}
+        <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
+          <button
+            type="button"
+            onClick={() =>
+              navigate({
+                to: "/search",
+                search: { ...search, category: undefined },
+              })
+            }
+            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
+              !search.category || search.category === "all"
+                ? "bg-primary text-primary-foreground shadow-xs"
+                : "bg-muted text-foreground hover:bg-muted"
+            }`}
+          >
+            ✨ All Categories ({listings.length})
+          </button>
+          {homeData.categories.map((c) => {
+            const isSelected = search.category === c.slug;
+            return (
+              <button
+                key={c.slug}
+                type="button"
+                onClick={() =>
+                  navigate({
+                    to: "/search",
+                    search: {
+                      ...search,
+                      category: isSelected ? undefined : c.slug,
+                    },
+                  })
+                }
+                className={`px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
+                  isSelected
+                    ? "bg-primary text-primary-foreground shadow-xs"
+                    : "bg-muted text-foreground hover:bg-muted"
+                }`}
+              >
+                {c.name}
+              </button>
+            );
+          })}
         </div>
       </div>
+
+      {/* Results Counter & Active Filter Pills */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 px-1 text-xs text-muted-foreground">
+        <div className="flex items-center gap-2">
+          <span>
+            Showing <strong className="text-foreground font-bold">{listings.length}</strong> Pune venue &amp; vendor listings
+            {selectedAreaName && (
+              <span className="ml-1 text-primary font-bold">in {selectedAreaName}</span>
+            )}
+          </span>
+        </div>
+
+        {hasActiveFilters && (
+          <button
+            type="button"
+            onClick={() => navigate({ to: "/search", search: {} })}
+            className="text-accent-dark hover:underline font-bold cursor-pointer self-start sm:self-auto"
+          >
+            Clear All Filters
+          </button>
+        )}
+      </div>
+
+      {/* Active Filter Chips */}
+      {(search.area || search.eventType || search.date || search.minCapacity || search.maxPrice) && (
+        <div className="flex flex-wrap items-center gap-1.5 pt-1">
+          {search.area && (
+            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-muted border border-border text-foreground text-xs font-medium">
+              <MapPin className="w-3 h-3 text-accent" />
+              <span>{selectedAreaName || search.area}</span>
+              <button
+                type="button"
+                onClick={() =>
+                  navigate({
+                    to: "/search",
+                    search: { ...search, area: undefined },
+                  })
+                }
+                className="hover:text-foreground text-muted-foreground cursor-pointer"
+                title="Remove area filter"
+              >
+                <X className="w-3 h-3" />
+              </button>
+            </span>
+          )}
+
+          {search.eventType && (
+            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-muted border border-border text-foreground text-xs font-medium">
+              <span>🎉 {selectedEventTypeName || search.eventType}</span>
+              <button
+                type="button"
+                onClick={() =>
+                  navigate({
+                    to: "/search",
+                    search: { ...search, eventType: undefined },
+                  })
+                }
+                className="hover:text-foreground text-muted-foreground cursor-pointer"
+                title="Remove event type filter"
+              >
+                <X className="w-3 h-3" />
+              </button>
+            </span>
+          )}
+
+          {search.date && (
+            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-muted border border-border text-foreground text-xs font-medium">
+              <Calendar className="w-3 h-3 text-accent" />
+              <span>{search.date}</span>
+              <button
+                type="button"
+                onClick={() =>
+                  navigate({
+                    to: "/search",
+                    search: { ...search, date: undefined },
+                  })
+                }
+                className="hover:text-foreground text-muted-foreground cursor-pointer"
+                title="Remove date filter"
+              >
+                <X className="w-3 h-3" />
+              </button>
+            </span>
+          )}
+
+          {search.minCapacity && (
+            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-muted border border-border text-foreground text-xs font-medium">
+              <Users className="w-3 h-3 text-accent" />
+              <span>{search.minCapacity}+ Pax</span>
+              <button
+                type="button"
+                onClick={() =>
+                  navigate({
+                    to: "/search",
+                    search: { ...search, minCapacity: undefined },
+                  })
+                }
+                className="hover:text-foreground text-muted-foreground cursor-pointer"
+                title="Remove guest count filter"
+              >
+                <X className="w-3 h-3" />
+              </button>
+            </span>
+          )}
+
+          {search.maxPrice && (
+            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-muted border border-border text-foreground text-xs font-medium">
+              <span>≤ {formatInr(search.maxPrice)}</span>
+              <button
+                type="button"
+                onClick={() =>
+                  navigate({
+                    to: "/search",
+                    search: { ...search, maxPrice: undefined },
+                  })
+                }
+                className="hover:text-foreground text-muted-foreground cursor-pointer"
+                title="Remove budget filter"
+              >
+                <X className="w-3 h-3" />
+              </button>
+            </span>
+          )}
+        </div>
+      )}
+
+      {/* Listings Grid */}
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {listings.map((listing: any) => (
+          <ListingCard key={listing.id} listing={listing} />
+        ))}
+      </div>
+
+      {/* Empty State (matching AI Studio App.tsx:362-380) */}
+      {listings.length === 0 && (
+        <div className="bg-card rounded-3xl border border-border p-12 text-center space-y-4 max-w-lg mx-auto">
+          <div className="w-14 h-14 rounded-full bg-muted text-muted-foreground flex items-center justify-center mx-auto">
+            <Search className="w-7 h-7" />
+          </div>
+          <h3 className="font-serif font-bold text-xl text-foreground">
+            No matching Pune listings found
+          </h3>
+          <p className="text-xs text-muted-foreground leading-relaxed">
+            Try adjusting your budget range, clearing locality filters, or searching for other event categories.
+          </p>
+          <div className="flex items-center justify-center gap-2">
+            <button
+              type="button"
+              onClick={() => navigate({ to: "/search", search: {} })}
+              className="px-5 py-2.5 bg-primary text-primary-foreground rounded-xl text-xs font-bold hover:bg-primary-dark transition-colors cursor-pointer"
+            >
+              Reset All Filters
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Bottom Sheet */}
+      <SearchFiltersBottomSheet
+        isOpen={isFiltersOpen}
+        onClose={() => setIsFiltersOpen(false)}
+        categories={homeData.categories}
+        eventTypes={homeData.eventTypes}
+        areas={homeData.areas}
+        totalResults={listings.length}
+      />
     </div>
   );
 }
-
