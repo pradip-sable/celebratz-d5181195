@@ -30,7 +30,7 @@ function Privacy() {
 
       <div className="space-y-4 text-xs sm:text-sm leading-relaxed text-foreground font-light">
         <section className="space-y-2">
-          <h3 className="font-bold text-base text-foreground">1. Introduction & Role</h3>
+          <h3 className="font-sans font-bold text-base text-foreground">1. Introduction & Role</h3>
           <p>
             Welcome to <strong>Celebratz</strong> (&ldquo;we,&rdquo; &ldquo;our,&rdquo; or
             &ldquo;us&rdquo;). Celebratz is an event venue and service discovery marketplace based
@@ -40,7 +40,7 @@ function Privacy() {
         </section>
 
         <section className="space-y-2 p-4 bg-accent-subtle/50 border border-accent/30 rounded-2xl">
-          <h3 className="font-bold text-base text-foreground flex items-center gap-2">
+          <h3 className="font-sans font-bold text-base text-foreground flex items-center gap-2">
             <ShieldCheck className="w-5 h-5 text-accent" />
             2. Customer Contact Sharing with Vendors
           </h3>
@@ -58,7 +58,9 @@ function Privacy() {
         </section>
 
         <section className="space-y-2">
-          <h3 className="font-bold text-base text-foreground">3. Information We Collect</h3>
+          <h3 className="font-sans font-bold text-base text-foreground">
+            3. Information We Collect
+          </h3>
           <ul className="list-disc pl-5 space-y-1 text-xs sm:text-sm">
             <li>
               <strong>Account Details:</strong> Name, email address, profile avatar, and verified or
@@ -76,7 +78,7 @@ function Privacy() {
         </section>
 
         <section className="space-y-2">
-          <h3 className="font-bold text-base text-foreground">4. Data Security</h3>
+          <h3 className="font-sans font-bold text-base text-foreground">4. Data Security</h3>
           <p>
             We implement strict access controls and encrypted communication protocols to safeguard
             all client and vendor data stored within our Pune marketplace infrastructure.
@@ -84,7 +86,9 @@ function Privacy() {
         </section>
 
         <section className="space-y-2">
-          <h3 className="font-bold text-base text-foreground">5. Contact Our Privacy Team</h3>
+          <h3 className="font-sans font-bold text-base text-foreground">
+            5. Contact Our Privacy Team
+          </h3>
           <p>
             If you have questions about your stored data, account deletion, or vendor privacy
             protocols, reach out directly to our team at{" "}

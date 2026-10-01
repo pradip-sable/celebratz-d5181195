@@ -79,10 +79,21 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "Celebratz — Discover venues & services for celebrations in Pune" },
-      { name: "description", content: "Find and compare banquet halls, photographers, caterers, decorators, DJs and pandits for weddings, birthdays, engagements and corporate events in Pune." },
+      {
+        name: "description",
+        content:
+          "Find and compare banquet halls, photographers, caterers, decorators, DJs and pandits for weddings, birthdays, engagements and corporate events in Pune.",
+      },
       { name: "author", content: "Celebratz" },
-      { property: "og:title", content: "Celebratz — Discover venues & services for celebrations in Pune" },
-      { property: "og:description", content: "Find and compare banquet halls, photographers, caterers, decorators, DJs and pandits for weddings, birthdays, engagements and corporate events in Pune." },
+      {
+        property: "og:title",
+        content: "Celebratz — Discover venues & services for celebrations in Pune",
+      },
+      {
+        property: "og:description",
+        content:
+          "Find and compare banquet halls, photographers, caterers, decorators, DJs and pandits for weddings, birthdays, engagements and corporate events in Pune.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -97,7 +108,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "preconnect", href: "https://fonts.cdnfonts.com", crossOrigin: "anonymous" },
       {
         rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap",
+        href: "https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@500;600;700;800&display=swap",
       },
       {
         rel: "stylesheet",

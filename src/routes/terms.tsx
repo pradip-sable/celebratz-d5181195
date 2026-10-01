@@ -29,7 +29,7 @@ function Terms() {
 
       <div className="space-y-4 text-xs sm:text-sm leading-relaxed text-foreground font-light">
         <section className="space-y-2">
-          <h3 className="font-bold text-base text-foreground">
+          <h3 className="font-sans font-bold text-base text-foreground">
             1. Nature of the Marketplace Platform
           </h3>
           <p>
@@ -39,7 +39,7 @@ function Terms() {
         </section>
 
         <section className="space-y-2 p-4 bg-muted border border-border/80 rounded-2xl">
-          <h3 className="font-bold text-base text-foreground">
+          <h3 className="font-sans font-bold text-base text-foreground">
             2. No In-App Financial Transactions / Offline Contracting
           </h3>
           <p className="text-xs text-foreground font-medium">
@@ -54,7 +54,7 @@ function Terms() {
         </section>
 
         <section className="space-y-2">
-          <h3 className="font-bold text-base text-foreground">
+          <h3 className="font-sans font-bold text-base text-foreground">
             3. Availability Calendar Disclaimers
           </h3>
           <p>
@@ -66,7 +66,9 @@ function Terms() {
         </section>
 
         <section className="space-y-2">
-          <h3 className="font-bold text-base text-foreground">4. User Conduct & Inquiries</h3>
+          <h3 className="font-sans font-bold text-base text-foreground">
+            4. User Conduct & Inquiries
+          </h3>
           <p>
             Customers agree to provide genuine contact details and valid celebration requirements
             when requesting bookings or enquiries.
@@ -74,7 +76,7 @@ function Terms() {
         </section>
 
         <section className="space-y-2">
-          <h3 className="font-bold text-base text-foreground">5. Support & Inquiries</h3>
+          <h3 className="font-sans font-bold text-base text-foreground">5. Support & Inquiries</h3>
           <p>
             For support inquiries or vendor onboarding assistance, please email{" "}
             <a href="mailto:celebratzapp@gmail.com" className="text-primary font-bold underline">

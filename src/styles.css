@@ -110,6 +110,8 @@
   --color-border-subtle: var(--border-subtle);
   --color-surface-dark: var(--surface-dark);
   --color-surface-dark-foreground: var(--surface-dark-foreground);
+  --font-serif: "Playfair Display", Georgia, "Times New Roman", serif;
+  --font-sans: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   --font-brand:
     "Agrandir Grand", "Agrandir", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
