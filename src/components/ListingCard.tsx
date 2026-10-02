@@ -312,7 +312,7 @@ export function ListingCard({
               title: listing.title,
               locality,
               address: listing.address ?? null,
-              googleMapsUrl: listing.googleMapsUrl,
+              googleMapsUrl: listing.googleMapsUrl ?? null,
             })}
             target="_blank"
             rel="noopener noreferrer"
