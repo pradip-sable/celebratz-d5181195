@@ -246,15 +246,16 @@ export const RequestEnquireModal: React.FC<RequestEnquireModalProps> = ({
       const price = computePackagePrice(
         pkgTarget.components || [],
         pkgTarget.discount_type === "fixed_amount" ? "fixed_amount" : "percentage",
-        pkgTarget.discount_value,
+        pkgTarget.discount_value ?? null,
       );
+      const packageTitle = pkgTarget.name || pkgTarget.title || "Celebration package";
       setActivePackageData({
         comboPackageId: pkgTarget.id,
-        comboPackageTitle: pkgTarget.name || pkgTarget.title,
+        comboPackageTitle: packageTitle,
         comboPrice: price.total,
       });
       setMessage(
-        `Hello, I am interested in booking the "${pkgTarget.name || pkgTarget.title}" package. Please share details on availability and customisation.`,
+        `Hello, I am interested in booking the "${packageTitle}" package. Please share details on availability and customisation.`,
       );
       return;
     }
@@ -281,13 +282,14 @@ export const RequestEnquireModal: React.FC<RequestEnquireModalProps> = ({
             combo.discount_type === "fixed_amount" ? "fixed_amount" : "percentage",
             combo.discount_value,
           );
+          const comboTitle = combo.name || "Celebration package";
           setActivePackageData({
             comboPackageId: combo.id,
-            comboPackageTitle: combo.name || combo.title,
+            comboPackageTitle: comboTitle,
             comboPrice: comboPrice.total,
           });
           setMessage(
-            `Hello, I am interested in booking the "${combo.name || combo.title}" all-in-one combo package. Please share details on availability and customisation.`,
+            `Hello, I am interested in booking the "${comboTitle}" all-in-one combo package. Please share details on availability and customisation.`,
           );
         }
       }
@@ -777,7 +779,7 @@ export const RequestEnquireModal: React.FC<RequestEnquireModalProps> = ({
                             <div className="text-right shrink-0 flex items-center gap-2">
                               <div>
                                 <span className="font-serif font-extrabold text-xs sm:text-sm text-primary block">
-                                  {formatInr(tier.price)}
+                                  {formatInr(tier.price == null ? null : Number(tier.price))}
                                 </span>
                                 <span className="text-[9px] text-muted-foreground">
                                   /{unitLabel(listing?.price_unit || "event")}
