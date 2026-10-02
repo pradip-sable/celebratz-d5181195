@@ -1,6 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useState } from "react";
 import { getHomeData, searchListings } from "@/lib/listings.functions";
 import { ListingCard } from "@/components/ListingCard";
+import { RequestEnquireModal } from "@/components/RequestEnquireModal";
 
 export const Route = createFileRoute("/category/$slug")({
   loader: async ({ params }) => {
@@ -40,6 +42,7 @@ export const Route = createFileRoute("/category/$slug")({
 
 function CategoryPage() {
   const { category, listings, categories } = Route.useLoaderData();
+  const [enquiringListingId, setEnquiringListingId] = useState<string | null>(null);
 
   return (
     <div className="mx-auto max-w-6xl px-4 pb-28 pt-6 md:pb-16">
@@ -70,7 +73,11 @@ function CategoryPage() {
       ) : (
         <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {listings.map((l) => (
-            <ListingCard key={l.id} listing={l as never} />
+            <ListingCard
+              key={l.id}
+              listing={l as never}
+              onEnquire={(listing) => setEnquiringListingId(listing.id)}
+            />
           ))}
         </div>
       )}
@@ -82,6 +89,12 @@ function CategoryPage() {
       >
         Refine with filters
       </Link>
+
+      <RequestEnquireModal
+        listingId={enquiringListingId}
+        isOpen={!!enquiringListingId}
+        onClose={() => setEnquiringListingId(null)}
+      />
     </div>
   );
 }

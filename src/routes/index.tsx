@@ -1,8 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
+import { useState } from "react";
 import { getHomeData } from "@/lib/listings.functions";
 import { HomeHero } from "@/components/HomeHero";
 import { ListingCard } from "@/components/ListingCard";
+import { RequestEnquireModal } from "@/components/RequestEnquireModal";
 
 export const Route = createFileRoute("/")({
   component: Home,
@@ -30,6 +32,8 @@ function Home() {
     queryFn: getHomeData,
   });
 
+  const [enquiringListingId, setEnquiringListingId] = useState<string | null>(null);
+
   return (
     <div className="mx-auto max-w-5xl px-4 pb-24 md:pb-12 pt-6 space-y-12">
       <HomeHero
@@ -55,10 +59,21 @@ function Home() {
         </div>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {data.featured.map((listing) => (
-            <ListingCard key={listing.id} listing={listing} isFeatured />
+            <ListingCard
+              key={listing.id}
+              listing={listing}
+              isFeatured
+              onEnquire={(listing) => setEnquiringListingId(listing.id)}
+            />
           ))}
         </div>
       </section>
+
+      <RequestEnquireModal
+        listingId={enquiringListingId}
+        isOpen={!!enquiringListingId}
+        onClose={() => setEnquiringListingId(null)}
+      />
     </div>
   );
 }

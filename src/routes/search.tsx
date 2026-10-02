@@ -6,6 +6,7 @@ import { z } from "zod";
 import { searchListings, getHomeData } from "@/lib/listings.functions";
 import { ListingCard } from "@/components/ListingCard";
 import { SearchFiltersBottomSheet } from "@/components/SearchFiltersBottomSheet";
+import { RequestEnquireModal } from "@/components/RequestEnquireModal";
 import { formatInr } from "@/lib/pricing";
 
 const searchSchema = z.object({
@@ -72,6 +73,7 @@ function SearchPage() {
 
   const [isFiltersOpen, setIsFiltersOpen] = useState(false);
   const [searchInput, setSearchInput] = useState(search.q ?? "");
+  const [enquiringListingId, setEnquiringListingId] = useState<string | null>(null);
 
   // Sync search input with search.q query param
   useEffect(() => {
@@ -329,7 +331,11 @@ function SearchPage() {
       {/* Listings Grid */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {listings.map((listing: any) => (
-          <ListingCard key={listing.id} listing={listing} />
+          <ListingCard
+            key={listing.id}
+            listing={listing}
+            onEnquire={(listing) => setEnquiringListingId(listing.id)}
+          />
         ))}
       </div>
 
@@ -365,6 +371,12 @@ function SearchPage() {
         eventTypes={homeData.eventTypes}
         areas={homeData.areas}
         totalResults={listings.length}
+      />
+
+      <RequestEnquireModal
+        listingId={enquiringListingId}
+        isOpen={!!enquiringListingId}
+        onClose={() => setEnquiringListingId(null)}
       />
     </div>
   );

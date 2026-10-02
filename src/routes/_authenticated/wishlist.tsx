@@ -1,10 +1,13 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
+import { useState } from "react";
 import { toast } from "sonner";
 import { getWishlist, toggleWishlist } from "@/lib/engagement.functions";
+import { ListingCard } from "@/components/ListingCard";
+import { RequestEnquireModal } from "@/components/RequestEnquireModal";
 import { Button } from "@/components/ui/button";
-import { Heart, Loader2, Star } from "lucide-react";
+import { Heart, Loader2 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/wishlist")({
   component: WishlistPage,
@@ -25,6 +28,7 @@ function WishlistPage() {
   const fetchWishlist = useServerFn(getWishlist);
   const toggle = useServerFn(toggleWishlist);
   const { data, isLoading } = useQuery({ queryKey: ["wishlist"], queryFn: () => fetchWishlist() });
+  const [enquiringListingId, setEnquiringListingId] = useState<string | null>(null);
 
   const mutation = useMutation({
     mutationFn: (listingId: string) => toggle({ data: { listingId } }),
@@ -44,7 +48,7 @@ function WishlistPage() {
   }
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-8 pb-24 md:py-12">
+    <div className="mx-auto max-w-5xl px-4 py-8 pb-24 md:py-12">
       <h1 className="font-serif text-2xl font-semibold">My wishlist</h1>
 
       {(data ?? []).length === 0 ? (
@@ -56,50 +60,33 @@ function WishlistPage() {
           </Button>
         </div>
       ) : (
-        <div className="mt-6 grid gap-4 sm:grid-cols-2">
+        <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {(data ?? []).map((item: any) => {
             const listing = item.listing;
-            const image = listing?.listing_media?.[0]?.storage_path;
+            if (!listing) return null;
+            const listingData = {
+              ...listing,
+              categories: listing.category,
+              areas: listing.area,
+            };
             return (
-              <div key={item.id} className="overflow-hidden rounded-2xl border border-border/60 bg-card shadow-sm">
-                {image && <img src={image} alt={listing.title} loading="lazy" className="h-40 w-full object-cover" />}
-                <div className="p-4">
-                  <p className="font-medium">{listing?.title}</p>
-                  <p className="text-sm text-muted-foreground">
-                    {listing?.category?.name} • {listing?.area?.name}
-                  </p>
-                  <p className="mt-2 text-sm">
-                    ₹{Number(listing?.price_from ?? 0).toLocaleString("en-IN")}{" "}
-                    <span className="text-muted-foreground">{String(listing?.price_unit).replace("per_", "per ")}</span>
-                  </p>
-                  {Number(listing?.review_count) > 0 && (
-                    <p className="mt-1 flex items-center gap-1 text-sm text-muted-foreground">
-                      <Star className="h-3.5 w-3.5 fill-accent text-accent" />
-                      {listing.rating_avg} ({listing.review_count})
-                    </p>
-                  )}
-                  <div className="mt-4 flex gap-2">
-                    <Button asChild size="sm" className="rounded-xl">
-                      <Link to="/listing/$slug" params={{ slug: listing.slug }}>
-                        View
-                      </Link>
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="rounded-xl"
-                      disabled={mutation.isPending}
-                      onClick={() => mutation.mutate(listing.id)}
-                    >
-                      Remove
-                    </Button>
-                  </div>
-                </div>
-              </div>
+              <ListingCard
+                key={item.id}
+                listing={listingData}
+                isSaved={true}
+                onToggleWishlist={() => mutation.mutate(listing.id)}
+                onEnquire={(listing) => setEnquiringListingId(listing.id)}
+              />
             );
           })}
         </div>
       )}
+
+      <RequestEnquireModal
+        listingId={enquiringListingId}
+        isOpen={!!enquiringListingId}
+        onClose={() => setEnquiringListingId(null)}
+      />
     </div>
   );
 }
