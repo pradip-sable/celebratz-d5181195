@@ -105,13 +105,23 @@ export function ListingCard({
   const toggleWishlistFn = useServerFn(toggleWishlist);
   const fetchWishlistFn = useServerFn(getWishlist);
 
-  // Optional query cache sync for wishlist state when not explicitly provided
+  const { data: authSession, isFetched: authSessionResolved } = useQuery({
+    queryKey: ["auth-session"],
+    queryFn: async () => {
+      const { data } = await supabase.auth.getSession();
+      return data.session;
+    },
+    retry: false,
+  });
+
+  // The wishlist endpoint is protected. Never call it from public cards until
+  // the browser has confirmed that an authenticated session exists.
   const { data: wishlistData } = useQuery({
     queryKey: ["wishlist"],
     queryFn: () => fetchWishlistFn(),
     staleTime: 60_000,
     retry: false,
-    enabled: isSavedProp === undefined,
+    enabled: isSavedProp === undefined && authSessionResolved && Boolean(authSession),
   });
 
   const wishlistMutation = useMutation({
@@ -187,28 +197,28 @@ export function ListingCard({
 
   const capacityMin =
     listing.capacity_min ??
-    (typeof listing.categoryAttributes?.capacityMin === "number"
-      ? listing.categoryAttributes.capacityMin
+    (typeof listing.categoryAttributes?.["capacityMin"] === "number"
+      ? listing.categoryAttributes["capacityMin"]
       : undefined);
 
   const capacityMax =
     listing.capacity_max ??
-    (typeof listing.categoryAttributes?.capacityMax === "number"
-      ? listing.categoryAttributes.capacityMax
+    (typeof listing.categoryAttributes?.["capacityMax"] === "number"
+      ? listing.categoryAttributes["capacityMax"]
       : undefined);
 
   const vegType =
-    typeof listing.categoryAttributes?.vegType === "string"
-      ? listing.categoryAttributes.vegType
+    typeof listing.categoryAttributes?.["vegType"] === "string"
+      ? listing.categoryAttributes["vegType"]
       : undefined;
   const deliveryTimelineDays =
-    typeof listing.categoryAttributes?.deliveryTimelineDays === "number" ||
-    typeof listing.categoryAttributes?.deliveryTimelineDays === "string"
-      ? String(listing.categoryAttributes.deliveryTimelineDays)
+    typeof listing.categoryAttributes?.["deliveryTimelineDays"] === "number" ||
+    typeof listing.categoryAttributes?.["deliveryTimelineDays"] === "string"
+      ? String(listing.categoryAttributes["deliveryTimelineDays"])
       : undefined;
   const soundWattage =
-    typeof listing.categoryAttributes?.soundWattage === "string"
-      ? listing.categoryAttributes.soundWattage
+    typeof listing.categoryAttributes?.["soundWattage"] === "string"
+      ? listing.categoryAttributes["soundWattage"]
       : undefined;
 
   const handleCardClick = () => {
@@ -220,6 +230,10 @@ export function ListingCard({
 
   const handleWishlistClick = (e: React.MouseEvent) => {
     e.stopPropagation();
+    if (!authSession) {
+      toast.info("Please sign in to save listings to your wishlist");
+      return;
+    }
     if (onToggleWishlist) {
       onToggleWishlist(listing.id);
     } else {
@@ -297,7 +311,7 @@ export function ListingCard({
             href={getGoogleMapsDirectionsUrl({
               title: listing.title,
               locality,
-              address: listing.address,
+              address: listing.address ?? null,
               googleMapsUrl: listing.googleMapsUrl,
             })}
             target="_blank"
