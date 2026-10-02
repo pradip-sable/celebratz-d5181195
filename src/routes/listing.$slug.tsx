@@ -1,10 +1,36 @@
 import { createFileRoute, Link, useParams } from "@tanstack/react-router";
-import { useQuery, useSuspenseQuery } from "@tanstack/react-query";
-import { useState } from "react";
-import { MapPin, Phone, Mail, Star, Clock, Check, AlertCircle, ChevronLeft, ChevronRight, Layers, Gift } from "lucide-react";
+import { useQuery, useSuspenseQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+import { useState, useEffect } from "react";
+import {
+  MapPin,
+  Phone,
+  Mail,
+  Star,
+  Clock,
+  Check,
+  AlertCircle,
+  ChevronLeft,
+  ChevronRight,
+  Layers,
+  Gift,
+  Heart,
+  Scale,
+  Share2,
+  Maximize2,
+  Copy,
+  MessageSquare,
+  Send,
+  Globe,
+  X,
+} from "lucide-react";
 import { format, differenceInDays, addDays } from "date-fns";
+import { toast } from "sonner";
 import { getListingBySlug } from "@/lib/listings.functions";
 import { getPackagesForListing } from "@/lib/packages.functions";
+import { toggleWishlist, getWishlist } from "@/lib/engagement.functions";
+import { useComparison, toggleComparisonId } from "@/hooks/useComparison";
+import { useModalScrollLock } from "@/hooks/useModalScrollLock";
 import { PackageCard } from "@/components/PackageCard";
 import { effectiveListingPrice, formatInr, unitLabel } from "@/lib/pricing";
 
@@ -61,34 +87,213 @@ function ListingPage() {
     queryFn: () => getPackagesForListing({ data: { listingId: listing.id } }),
   });
 
+  const queryClient = useQueryClient();
+  const toggleWishlistFn = useServerFn(toggleWishlist);
+  const fetchWishlistFn = useServerFn(getWishlist);
+
+  // 1. Wishlist state & mutation
+  const { data: wishlistData } = useQuery({
+    queryKey: ["wishlist"],
+    queryFn: () => fetchWishlistFn(),
+    staleTime: 60_000,
+    retry: false,
+  });
+
+  const isSaved = wishlistData?.some((item: any) => item.listing?.id === listing.id);
+
+  const wishlistMutation = useMutation({
+    mutationFn: (listingId: string) => toggleWishlistFn({ data: { listingId } }),
+    onSuccess: (res) => {
+      queryClient.invalidateQueries({ queryKey: ["wishlist"] });
+      toast.success(res.saved ? "Added to wishlist" : "Removed from wishlist");
+    },
+    onError: () => {
+      toast.info("Please sign in to save listings to your wishlist");
+    },
+  });
+
+  const handleToggleWishlist = () => {
+    wishlistMutation.mutate(listing.id);
+  };
+
+  // 2. Comparison state
+  const { comparisonIds } = useComparison();
+  const isCompared = comparisonIds.includes(listing.id);
+
+  const handleToggleComparison = () => {
+    toggleComparisonId(listing.id);
+  };
+
+  // 3. Share state & handlers
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+  const [copiedLink, setCopiedLink] = useState(false);
+
+  const getShareUrl = () => {
+    if (typeof window !== "undefined") {
+      return window.location.href;
+    }
+    return `https://celebratz.com/listing/${listing.slug}`;
+  };
+
+  const shareTitle = `${listing.title} | Celebratz Pune`;
+  const shareText = `Check out ${listing.title} (${listing.categories?.name ?? ""}) in ${listing.areas?.name ?? ""}, Pune on Celebratz!`;
+
+  const handleCopyLink = async () => {
+    const url = getShareUrl();
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(url);
+      } else {
+        const input = document.createElement("textarea");
+        input.value = url;
+        document.body.appendChild(input);
+        input.select();
+        document.execCommand("copy");
+        document.body.removeChild(input);
+      }
+      setCopiedLink(true);
+      toast.success("Link copied to clipboard");
+      setTimeout(() => setCopiedLink(false), 2500);
+    } catch (e) {
+      console.error("Failed to copy link", e);
+    }
+  };
+
+  const handleShare = async () => {
+    const url = getShareUrl();
+    if (typeof navigator !== "undefined" && navigator.share) {
+      try {
+        await navigator.share({
+          title: shareTitle,
+          text: shareText,
+          url: url,
+        });
+        return;
+      } catch (e: any) {
+        if (e.name === "AbortError") return;
+      }
+    }
+    setIsShareModalOpen(true);
+  };
+
+  // 4. Lightbox state & handlers
+  const [isLightboxOpen, setIsLightboxOpen] = useState(false);
+
+  useModalScrollLock(isLightboxOpen, () => setIsLightboxOpen(false));
+  useModalScrollLock(isShareModalOpen, () => setIsShareModalOpen(false));
+
+  useEffect(() => {
+    if (!isLightboxOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setIsLightboxOpen(false);
+      } else if (e.key === "ArrowLeft") {
+        setActiveImage((i) => (i === 0 ? images.length - 1 : i - 1));
+      } else if (e.key === "ArrowRight") {
+        setActiveImage((i) => (i === images.length - 1 ? 0 : i + 1));
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isLightboxOpen, images.length]);
 
   return (
     <div className="mx-auto max-w-5xl px-4 pb-28 pt-4 md:pb-12 md:pt-8">
-      <a href="/search" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
-        <ChevronLeft className="h-4 w-4" /> Back to search
-      </a>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <Link
+          to="/search"
+          className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
+        >
+          <ChevronLeft className="h-4 w-4" /> Back to search
+        </Link>
+
+        {/* Action Buttons: Share, Compare, Wishlist */}
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={handleShare}
+            className="p-2 rounded-xl bg-card hover:bg-muted text-foreground hover:text-primary border border-border transition-colors flex items-center gap-1.5 cursor-pointer shadow-xs text-xs font-semibold"
+            title="Share listing"
+          >
+            <Share2 className="w-4 h-4 text-muted-foreground" />
+            <span className="hidden sm:inline">Share</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={handleToggleComparison}
+            className={`p-2 rounded-xl text-xs font-medium border flex items-center gap-1.5 transition-colors cursor-pointer shadow-xs ${
+              isCompared
+                ? "bg-accent-subtle text-accent-dark border-accent font-bold"
+                : "bg-card hover:bg-muted text-foreground border-border"
+            }`}
+            title={isCompared ? "Remove from comparison" : "Add to comparison"}
+          >
+            <Scale className="w-4 h-4" />
+            <span className="hidden sm:inline">{isCompared ? "In Compare Tray" : "Compare"}</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={handleToggleWishlist}
+            className="p-2 rounded-xl bg-card hover:bg-muted text-foreground hover:text-destructive border border-border transition-colors cursor-pointer shadow-xs"
+            title={isSaved ? "Remove from wishlist" : "Add to wishlist"}
+            aria-label="Wishlist toggle"
+          >
+            <Heart className={`w-4 h-4 ${isSaved ? "fill-destructive text-destructive" : ""}`} />
+          </button>
+        </div>
+      </div>
 
       <div className="mt-4 grid gap-6 lg:grid-cols-[1fr_360px]">
         {/* Main column */}
         <div>
           {/* Gallery */}
-          <div className="relative overflow-hidden rounded-2xl border border-border/60 bg-muted">
+          <div className="relative overflow-hidden rounded-2xl border border-border/60 bg-muted group">
             <img
               src={images[activeImage]?.storage_path}
               alt={listing.title}
-              className="aspect-[16/10] w-full object-cover"
+              className="aspect-[16/10] w-full object-cover cursor-pointer transition-transform duration-300 group-hover:scale-[1.01]"
+              onClick={() => setIsLightboxOpen(true)}
             />
+
+            {/* "Photo X of Y" counter overlay */}
+            <div className="absolute top-3 left-3 px-3 py-1 rounded-full bg-black/60 text-white text-xs font-semibold backdrop-blur-xs select-none pointer-events-none z-10">
+              Photo {activeImage + 1} of {images.length}
+            </div>
+
+            {/* Zoom / Fullscreen overlay button */}
+            <button
+              type="button"
+              onClick={() => setIsLightboxOpen(true)}
+              className="absolute bottom-3 right-3 p-2 rounded-xl bg-black/60 hover:bg-black/80 text-white backdrop-blur-xs transition-colors cursor-pointer flex items-center gap-1.5 text-xs font-medium z-10 shadow-sm"
+              title="View fullscreen photo"
+            >
+              <Maximize2 className="h-4 w-4" />
+              <span className="hidden sm:inline">Fullscreen</span>
+            </button>
+
             {images.length > 1 && (
               <>
                 <button
-                  onClick={() => setActiveImage((i) => (i === 0 ? images.length - 1 : i - 1))}
-                  className="absolute left-3 top-1/2 -translate-y-1/2 rounded-full bg-background/80 p-2 backdrop-blur"
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setActiveImage((i) => (i === 0 ? images.length - 1 : i - 1));
+                  }}
+                  className="absolute left-3 top-1/2 -translate-y-1/2 rounded-full bg-background/80 p-2 backdrop-blur hover:bg-background transition-colors cursor-pointer z-10 shadow-sm"
+                  aria-label="Previous photo"
                 >
                   <ChevronLeft className="h-5 w-5" />
                 </button>
                 <button
-                  onClick={() => setActiveImage((i) => (i === images.length - 1 ? 0 : i + 1))}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full bg-background/80 p-2 backdrop-blur"
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setActiveImage((i) => (i === images.length - 1 ? 0 : i + 1));
+                  }}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full bg-background/80 p-2 backdrop-blur hover:bg-background transition-colors cursor-pointer z-10 shadow-sm"
+                  aria-label="Next photo"
                 >
                   <ChevronRight className="h-5 w-5" />
                 </button>
@@ -210,7 +415,7 @@ function ListingPage() {
                 )}
               </div>
               {stale ? (
-                <div className="mt-4 flex items-start gap-3 rounded-xl bg-amber-50 p-4 text-sm text-amber-800">
+                <div className="mt-4 flex items-start gap-3 rounded-xl bg-warning/15 p-4 text-sm text-warning border border-warning/30">
                   <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
                   <p>This calendar has not been updated recently. Please check availability directly with the vendor.</p>
                 </div>
@@ -313,6 +518,252 @@ function ListingPage() {
           </div>
         </aside>
       </div>
+
+      {/* Image Gallery Lightbox Modal */}
+      {isLightboxOpen && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="Photo gallery lightbox"
+          className="fixed inset-0 z-50 flex flex-col justify-between bg-black/95 p-3 sm:p-6 backdrop-blur-md animate-in fade-in select-none"
+          onClick={() => setIsLightboxOpen(false)}
+        >
+          {/* Top Bar */}
+          <div
+            className="flex items-center justify-between text-white pb-3 z-10"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center gap-2">
+              <span className="px-3 py-1 rounded-full bg-white/10 text-white text-xs font-semibold backdrop-blur-xs">
+                Photo {activeImage + 1} of {images.length}
+              </span>
+              <span className="text-xs text-white/70 hidden sm:inline truncate max-w-md">
+                {listing.title}
+              </span>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setIsLightboxOpen(false)}
+              className="p-2 rounded-xl bg-white/10 hover:bg-white/20 text-white transition-colors cursor-pointer"
+              title="Close fullscreen view (Esc)"
+              aria-label="Close fullscreen view"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          </div>
+
+          {/* Main Photo Center */}
+          <div
+            className="relative flex flex-1 items-center justify-center p-2 min-h-0"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <img
+              src={images[activeImage]?.storage_path}
+              alt={listing.title}
+              className="max-h-[75vh] sm:max-h-[80vh] max-w-full object-contain rounded-xl shadow-2xl select-none"
+            />
+
+            {images.length > 1 && (
+              <>
+                <button
+                  type="button"
+                  onClick={() => setActiveImage((i) => (i === 0 ? images.length - 1 : i - 1))}
+                  className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 rounded-full bg-black/60 hover:bg-black/80 text-white p-3 backdrop-blur-xs transition-colors cursor-pointer"
+                  title="Previous photo (Left arrow)"
+                  aria-label="Previous photo"
+                >
+                  <ChevronLeft className="h-6 w-6" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveImage((i) => (i === images.length - 1 ? 0 : i + 1))}
+                  className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 rounded-full bg-black/60 hover:bg-black/80 text-white p-3 backdrop-blur-xs transition-colors cursor-pointer"
+                  title="Next photo (Right arrow)"
+                  aria-label="Next photo"
+                >
+                  <ChevronRight className="h-6 w-6" />
+                </button>
+              </>
+            )}
+          </div>
+
+          {/* Thumbnail Strip */}
+          {images.length > 1 && (
+            <div
+              className="flex justify-center gap-2 overflow-x-auto pt-3 pb-1 z-10 max-w-3xl mx-auto"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {images.map((img: any, idx: number) => (
+                <button
+                  key={idx}
+                  type="button"
+                  onClick={() => setActiveImage(idx)}
+                  className={`relative shrink-0 overflow-hidden rounded-lg border-2 transition-all cursor-pointer ${
+                    activeImage === idx
+                      ? "border-primary scale-105 shadow-md opacity-100"
+                      : "border-transparent opacity-50 hover:opacity-100"
+                  }`}
+                >
+                  <img src={img.storage_path} alt="" className="h-12 w-16 object-cover" />
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Share Listing Modal */}
+      {isShareModalOpen && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="Share celebration listing"
+          className="fixed inset-0 z-50 flex items-center justify-center p-3 bg-black/80 backdrop-blur-xs animate-in fade-in"
+          onClick={() => setIsShareModalOpen(false)}
+        >
+          <div
+            className="bg-card rounded-3xl max-w-md w-full p-5 sm:p-6 shadow-2xl border border-border space-y-5 relative animate-in zoom-in-95 text-foreground"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between pb-3 border-b border-border-subtle">
+              <div className="flex items-center gap-2">
+                <div className="p-2 rounded-xl bg-accent-subtle text-accent-dark">
+                  <Share2 className="w-4 h-4 text-accent" />
+                </div>
+                <div>
+                  <h3 className="font-serif font-bold text-base text-foreground">Share Celebration Listing</h3>
+                  <p className="text-[11px] text-muted-foreground">Send to family, partner, or event planning groups</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsShareModalOpen(false)}
+                className="p-1.5 rounded-xl bg-muted hover:bg-muted text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+                aria-label="Close share dialog"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Listing Preview Snippet */}
+            <div className="p-3 bg-muted/40 rounded-2xl border border-border flex gap-3 items-center">
+              <img
+                src={images[0]?.storage_path}
+                alt={listing.title}
+                className="w-16 h-16 rounded-xl object-cover shrink-0 shadow-2xs"
+              />
+              <div className="min-w-0 space-y-0.5">
+                <span className="px-2 py-0.5 rounded text-[9px] font-bold uppercase bg-primary-subtle text-primary">
+                  {listing.categories?.name ?? "Listing"}
+                </span>
+                <h4 className="font-bold text-xs text-foreground truncate">{listing.title}</h4>
+                <p className="text-[11px] text-muted-foreground truncate">
+                  {listing.areas?.name ? `${listing.areas.name}, Pune` : "Pune"} &bull; {formatInr(effectivePrice)}/{unitLabel(listing.price_unit)}
+                </p>
+              </div>
+            </div>
+
+            {/* Direct Copy Link Box */}
+            <div className="space-y-1.5">
+              <label className="block text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                Direct Listing Link
+              </label>
+              <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  readOnly
+                  value={getShareUrl()}
+                  className="w-full bg-muted border border-border rounded-xl px-3 py-2 text-xs font-mono text-foreground select-all outline-hidden truncate"
+                />
+                <button
+                  type="button"
+                  onClick={handleCopyLink}
+                  className={`px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all shrink-0 cursor-pointer shadow-xs ${
+                    copiedLink
+                      ? "bg-success text-success-foreground"
+                      : "bg-primary hover:bg-primary/90 text-primary-foreground"
+                  }`}
+                >
+                  {copiedLink ? (
+                    <>
+                      <Check className="w-3.5 h-3.5" />
+                      <span>Copied!</span>
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="w-3.5 h-3.5" />
+                      <span>Copy</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+
+            {/* Quick 1-Tap Sharing Channels */}
+            <div className="space-y-2">
+              <label className="block text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                Share via 1-Tap
+              </label>
+              <div className="grid grid-cols-2 gap-2.5">
+                {/* WhatsApp */}
+                <a
+                  href={`https://api.whatsapp.com/send?text=${encodeURIComponent(shareText + " " + getShareUrl())}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="p-2.5 rounded-xl bg-success/10 hover:bg-success/15 border border-success/30 text-success text-xs font-bold flex items-center justify-center gap-2 transition-colors shadow-2xs cursor-pointer"
+                >
+                  <MessageSquare className="w-4 h-4 text-success" />
+                  <span>WhatsApp</span>
+                </a>
+
+                {/* Email */}
+                <a
+                  href={`mailto:?subject=${encodeURIComponent(shareTitle)}&body=${encodeURIComponent(shareText + "\n\n" + getShareUrl())}`}
+                  className="p-2.5 rounded-xl bg-muted hover:bg-muted/80 border border-border text-foreground text-xs font-bold flex items-center justify-center gap-2 transition-colors cursor-pointer"
+                >
+                  <Mail className="w-4 h-4 text-muted-foreground" />
+                  <span>Email</span>
+                </a>
+
+                {/* Twitter / X */}
+                <a
+                  href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(getShareUrl())}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="p-2.5 rounded-xl bg-surface-dark hover:bg-surface-dark/80 text-surface-dark-foreground text-xs font-bold flex items-center justify-center gap-2 transition-colors shadow-2xs cursor-pointer"
+                >
+                  <Send className="w-3.5 h-3.5 text-accent" />
+                  <span>X (Twitter)</span>
+                </a>
+
+                {/* Facebook */}
+                <a
+                  href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(getShareUrl())}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="p-2.5 rounded-xl bg-primary/10 hover:bg-primary/20 border border-primary/30 text-primary text-xs font-bold flex items-center justify-center gap-2 transition-colors cursor-pointer"
+                >
+                  <Globe className="w-4 h-4 text-primary" />
+                  <span>Facebook</span>
+                </a>
+              </div>
+            </div>
+
+            {/* Close Button */}
+            <div className="pt-2">
+              <button
+                type="button"
+                onClick={() => setIsShareModalOpen(false)}
+                className="w-full py-2.5 bg-muted hover:bg-muted text-foreground rounded-xl text-xs font-bold transition-colors cursor-pointer"
+              >
+                Done
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -331,11 +782,11 @@ function AvailabilityCalendar({ availability }: { availability: any[] }) {
   return (
     <div className="mt-4">
       <div className="mb-3 flex items-center justify-between">
-        <button onClick={() => setMonthOffset((o) => o - 1)} className="rounded-lg p-1 hover:bg-muted">
+        <button onClick={() => setMonthOffset((o) => o - 1)} className="rounded-lg p-1 hover:bg-muted cursor-pointer transition-colors" aria-label="Previous month">
           <ChevronLeft className="h-5 w-5" />
         </button>
         <span className="text-sm font-medium">{format(start, "MMMM yyyy")}</span>
-        <button onClick={() => setMonthOffset((o) => o + 1)} className="rounded-lg p-1 hover:bg-muted">
+        <button onClick={() => setMonthOffset((o) => o + 1)} className="rounded-lg p-1 hover:bg-muted cursor-pointer transition-colors" aria-label="Next month">
           <ChevronRight className="h-5 w-5" />
         </button>
       </div>
@@ -347,7 +798,11 @@ function AvailabilityCalendar({ availability }: { availability: any[] }) {
           const dateKey = format(day, "yyyy-MM-dd");
           const state = stateMap[dateKey] ?? "available";
           const color =
-            state === "booked" ? "bg-rose-100 text-rose-700" : state === "tentative" ? "bg-amber-100 text-amber-700" : "bg-emerald-100 text-emerald-700";
+            state === "booked"
+              ? "bg-destructive/15 text-destructive"
+              : state === "tentative"
+              ? "bg-warning/15 text-warning"
+              : "bg-success/15 text-success";
           return (
             <div
               key={dateKey}
@@ -361,9 +816,9 @@ function AvailabilityCalendar({ availability }: { availability: any[] }) {
         })}
       </div>
       <div className="mt-4 flex items-center gap-4 text-xs">
-        <span className="flex items-center gap-1"><span className="h-2.5 w-2.5 rounded-full bg-emerald-500" /> Available</span>
-        <span className="flex items-center gap-1"><span className="h-2.5 w-2.5 rounded-full bg-amber-500" /> Tentative</span>
-        <span className="flex items-center gap-1"><span className="h-2.5 w-2.5 rounded-full bg-rose-500" /> Booked</span>
+        <span className="flex items-center gap-1"><span className="h-2.5 w-2.5 rounded-full bg-success" /> Available</span>
+        <span className="flex items-center gap-1"><span className="h-2.5 w-2.5 rounded-full bg-warning" /> Tentative</span>
+        <span className="flex items-center gap-1"><span className="h-2.5 w-2.5 rounded-full bg-destructive" /> Booked</span>
       </div>
     </div>
   );
