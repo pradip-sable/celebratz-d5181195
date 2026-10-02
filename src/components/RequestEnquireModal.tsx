@@ -132,8 +132,16 @@ export const RequestEnquireModal: React.FC<RequestEnquireModalProps> = ({
     ),
   });
 
-  const listing = initialListing || (remoteTarget?.type === "listing" ? remoteTarget.listing : null);
-  const pkgTarget = initialPackage || (remoteTarget?.type === "package" ? remoteTarget.pkg : null);
+  const listing: NonNullable<RequestEnquireModalProps["listing"]> | null =
+    initialListing ||
+    (remoteTarget?.type === "listing"
+      ? (remoteTarget.listing as NonNullable<RequestEnquireModalProps["listing"]>)
+      : null);
+  const pkgTarget: NonNullable<RequestEnquireModalProps["package"]> | null =
+    initialPackage ||
+    (remoteTarget?.type === "package"
+      ? (remoteTarget.pkg as NonNullable<RequestEnquireModalProps["package"]>)
+      : null);
 
   // Fetch combo packages for the listing
   const fetchCombos = useServerFn(getPackagesForListing);
@@ -149,7 +157,9 @@ export const RequestEnquireModal: React.FC<RequestEnquireModalProps> = ({
   const [signedIn, setSignedIn] = useState<boolean | null>(null);
 
   // Form State
-  const [requestType, setRequestType] = useState<"request_to_book" | "general_enquiry">(initialKind);
+  const [requestType, setRequestType] = useState<"request_to_book" | "general_enquiry">(
+    initialKind === "booking_request" ? "request_to_book" : "general_enquiry",
+  );
   const [eventType, setEventType] = useState<string>("Wedding");
   const [eventDate, setEventDate] = useState<string>("");
   const [guestCount, setGuestCount] = useState<number | "">("");
@@ -235,16 +245,17 @@ export const RequestEnquireModal: React.FC<RequestEnquireModalProps> = ({
     if (pkgTarget) {
       const price = computePackagePrice(
         pkgTarget.components || [],
-        pkgTarget.discount_type,
-        pkgTarget.discount_value,
+        pkgTarget.discount_type === "fixed_amount" ? "fixed_amount" : "percentage",
+        pkgTarget.discount_value ?? null,
       );
+      const packageTitle = pkgTarget.name || pkgTarget.title || "Celebration package";
       setActivePackageData({
         comboPackageId: pkgTarget.id,
-        comboPackageTitle: pkgTarget.name || pkgTarget.title,
-        comboPrice: price,
+        comboPackageTitle: packageTitle,
+        comboPrice: price.total,
       });
       setMessage(
-        `Hello, I am interested in booking the "${pkgTarget.name || pkgTarget.title}" package. Please share details on availability and customisation.`,
+        `Hello, I am interested in booking the "${packageTitle}" package. Please share details on availability and customisation.`,
       );
       return;
     }
@@ -268,16 +279,17 @@ export const RequestEnquireModal: React.FC<RequestEnquireModalProps> = ({
         if (combo) {
           const comboPrice = computePackagePrice(
             combo.components || [],
-            combo.discount_type,
+            combo.discount_type === "fixed_amount" ? "fixed_amount" : "percentage",
             combo.discount_value,
           );
+          const comboTitle = combo.name || "Celebration package";
           setActivePackageData({
             comboPackageId: combo.id,
-            comboPackageTitle: combo.name || combo.title,
-            comboPrice,
+            comboPackageTitle: comboTitle,
+            comboPrice: comboPrice.total,
           });
           setMessage(
-            `Hello, I am interested in booking the "${combo.name || combo.title}" all-in-one combo package. Please share details on availability and customisation.`,
+            `Hello, I am interested in booking the "${comboTitle}" all-in-one combo package. Please share details on availability and customisation.`,
           );
         }
       }
@@ -345,16 +357,16 @@ export const RequestEnquireModal: React.FC<RequestEnquireModalProps> = ({
 
     const price = computePackagePrice(
       combo.components || [],
-      combo.discount_type,
+      combo.discount_type === "fixed_amount" ? "fixed_amount" : "percentage",
       combo.discount_value,
     );
     setActivePackageData({
       comboPackageId: combo.id,
       comboPackageTitle: combo.name || combo.title,
-      comboPrice: price,
+      comboPrice: price.total,
     });
     setMessage(
-      `Hello, I am interested in booking the "${combo.name || combo.title}" all-in-one combo package (${formatInr(price)}). Please share details on availability and customisation.`,
+      `Hello, I am interested in booking the "${combo.name || combo.title}" all-in-one combo package (${formatInr(price.total)}). Please share details on availability and customisation.`,
     );
   };
 
@@ -767,7 +779,7 @@ export const RequestEnquireModal: React.FC<RequestEnquireModalProps> = ({
                             <div className="text-right shrink-0 flex items-center gap-2">
                               <div>
                                 <span className="font-serif font-extrabold text-xs sm:text-sm text-primary block">
-                                  {formatInr(tier.price)}
+                                  {formatInr(tier.price == null ? null : Number(tier.price))}
                                 </span>
                                 <span className="text-[9px] text-muted-foreground">
                                   /{unitLabel(listing?.price_unit || "event")}
@@ -822,9 +834,9 @@ export const RequestEnquireModal: React.FC<RequestEnquireModalProps> = ({
                       const isExpanded = expandedPackageId === `combo_${combo.id}`;
                       const comboPrice = computePackagePrice(
                         combo.components || [],
-                        combo.discount_type,
+                        combo.discount_type === "fixed_amount" ? "fixed_amount" : "percentage",
                         combo.discount_value,
-                      );
+                      ).total;
                       const originalPrice = (combo.components || []).reduce(
                         (sum: number, c: any) => sum + Number(c.price_from ?? 0),
                         0,

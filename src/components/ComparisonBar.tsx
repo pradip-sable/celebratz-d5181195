@@ -164,11 +164,12 @@ export const ComparisonView: React.FC = () => {
 
                 const categoryAttrs = (item.category_attributes || {}) as Record<string, unknown>;
                 const dietaryOptions =
-                  (categoryAttrs.veg_type as string) ||
-                  (categoryAttrs.vegType as string) ||
-                  (categoryAttrs.dietary as string);
+                  (categoryAttrs["veg_type"] as string) ||
+                  (categoryAttrs["vegType"] as string) ||
+                  (categoryAttrs["dietary"] as string);
                 const photographyStyle =
-                  (categoryAttrs.style as string) || (categoryAttrs.photography_style as string);
+                  (categoryAttrs["style"] as string) ||
+                  (categoryAttrs["photography_style"] as string);
 
                 const eventTypes = (item.listing_event_types || [])
                   .map((et) => et.event_types?.name)
