@@ -16,6 +16,8 @@ import {
 import { Link } from "@tanstack/react-router";
 import { BrandName } from "./BrandName";
 import { useModalScrollLock } from "@/hooks/useModalScrollLock";
+import { supabase } from "@/integrations/supabase/client";
+import { lovable } from "@/integrations/lovable";
 
 export interface AuthModalProps {
   isOpen?: boolean;
@@ -23,6 +25,8 @@ export interface AuthModalProps {
   asPage?: boolean;
   initialMode?: "login" | "signup" | "forgot_password";
   initialMethod?: "google" | "mobile" | "email";
+  initialRole?: "customer" | "vendor" | "admin";
+  returnTo?: string;
   onSuccess?: () => void;
 }
 
@@ -62,6 +66,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   asPage = false,
   initialMode = "login",
   initialMethod = "google",
+  initialRole = "customer",
+  returnTo = "/",
   onSuccess,
 }) => {
   useModalScrollLock(Boolean(isOpen && !asPage), onClose);
@@ -85,7 +91,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   const [resendTimer, setResendTimer] = useState(0);
 
   // Form states - Signup
-  const [signupRole, setSignupRole] = useState<"customer" | "vendor">("customer");
+  const [signupRole, setSignupRole] = useState<"customer" | "vendor" | "admin">(initialRole);
   const [fullName, setFullName] = useState("");
   const [signupEmail, setSignupEmail] = useState("");
   const [signupPhone, setSignupPhone] = useState("");
@@ -107,15 +113,45 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
-  // Synchronize initial mode & method when modal opens or initial props change
+  // Synchronize initial mode, method & role when modal opens or initial props change
   useEffect(() => {
     if (isOpen) {
       setMode(initialMode);
       setLoginMethod(initialMethod);
+      setSignupRole(initialRole);
       setErrorMessage(null);
       setSuccessMessage(null);
     }
-  }, [isOpen, initialMode, initialMethod]);
+  }, [isOpen, initialMode, initialMethod, initialRole]);
+
+  // Session observer: auto-redirect if session is active or created
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => {
+      if (data?.session) {
+        if (onSuccess) {
+          onSuccess();
+        } else if (asPage) {
+          window.location.href = returnTo;
+        }
+      }
+    });
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session) {
+        if (onSuccess) {
+          onSuccess();
+        } else if (asPage) {
+          window.location.href = returnTo;
+        }
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [returnTo, onSuccess, asPage]);
 
   // Resend OTP timer countdown
   useEffect(() => {
@@ -178,19 +214,37 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     }
   };
 
-  // STUB: Google OAuth sign-in pending infrastructure setup (Google Cloud Console OAuth Client ID & redirect URIs)
-  const handleGoogleLoginSubmit = (e?: React.FormEvent) => {
+  // Real Google OAuth sign-in via Lovable Cloud Auth
+  const handleGoogleLoginSubmit = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     setErrorMessage(null);
+    setSuccessMessage(null);
     setIsLoading(true);
-    setTimeout(() => {
+
+    try {
+      const result = await lovable.auth.signInWithOAuth("google", {
+        redirect_uri: `${window.location.origin}/auth?returnTo=${encodeURIComponent(returnTo)}`,
+        ...(isCustomGoogle && googleEmail.trim()
+          ? { extraParams: { login_hint: googleEmail.trim() } }
+          : {}),
+      });
+
+      if (result.error) {
+        setErrorMessage(result.error.message ?? "Google sign-in failed.");
+        setIsLoading(false);
+      } else if (!result.redirected) {
+        setSuccessMessage("Successfully signed in with Google!");
+        if (onSuccess) {
+          onSuccess();
+          onClose?.();
+        } else if (asPage) {
+          window.location.href = returnTo;
+        }
+      }
+    } catch (err: any) {
+      setErrorMessage(err.message ?? "Google sign-in failed.");
       setIsLoading(false);
-      setSuccessMessage("Successfully signed in with Google!");
-      setTimeout(() => {
-        onSuccess?.();
-        onClose?.();
-      }, 800);
-    }, 600);
+    }
   };
 
   // STUB: Mobile password login pending backend schema and phone auth integration
@@ -217,38 +271,65 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     }, 500);
   };
 
-  // STUB: Email & password authentication pending custom SMTP and email confirmation configuration
-  const handleEmailLoginSubmit = (e: React.FormEvent) => {
+  // Real Email & password authentication using user's actual password
+  const handleEmailLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email.trim()) {
+    const cleanEmail = email.trim();
+    if (!cleanEmail) {
       setErrorMessage("Please enter your email address.");
       return;
     }
+    if (!password) {
+      setErrorMessage("Please enter your password.");
+      return;
+    }
+
     setErrorMessage(null);
+    setSuccessMessage(null);
     setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
+
+    try {
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: cleanEmail,
+        password,
+      });
+
+      if (signInError) {
+        throw signInError;
+      }
+
       setSuccessMessage("Signed in successfully!");
-      setTimeout(() => {
-        onSuccess?.();
+      if (onSuccess) {
+        onSuccess();
         onClose?.();
-      }, 800);
-    }, 500);
+      } else if (asPage) {
+        window.location.href = returnTo;
+      }
+    } catch (err: any) {
+      setErrorMessage(err.message ?? "Sign-in failed. Please check your email and password.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  // STUB: Account registration pending auth infrastructure and vendor onboarding pipeline
-  const handleSignupSubmit = (e: React.FormEvent) => {
+  // Real account registration using user's actual signupPassword and role metadata
+  const handleSignupSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const cleanEmail = signupEmail.trim();
     if (!fullName.trim()) {
       setErrorMessage("Please enter your full name or contact person name.");
       return;
     }
-    if (!signupEmail.trim()) {
+    if (!cleanEmail) {
       setErrorMessage("Please provide an email address.");
       return;
     }
     if (signupRole === "vendor" && !businessName.trim()) {
       setErrorMessage("Please enter your business or brand name.");
+      return;
+    }
+    if (!signupPassword || signupPassword.length < 6) {
+      setErrorMessage("Password must be at least 6 characters.");
       return;
     }
     if (!agreeTerms) {
@@ -257,38 +338,80 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     }
 
     setErrorMessage(null);
+    setSuccessMessage(null);
     setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
+
+    try {
+      const { data, error: signUpError } = await supabase.auth.signUp({
+        email: cleanEmail,
+        password: signupPassword,
+        options: {
+          data: {
+            full_name: fullName.trim(),
+            account_type: signupRole,
+            phone: signupPhone.trim() || undefined,
+            business_name: signupRole === "vendor" ? businessName.trim() : undefined,
+            category: signupRole === "vendor" ? selectedCategory : undefined,
+            locality: signupRole === "vendor" ? selectedLocality : undefined,
+          },
+          emailRedirectTo: `${window.location.origin}/auth?returnTo=${encodeURIComponent(returnTo)}`,
+        },
+      });
+
+      if (signUpError) {
+        throw signUpError;
+      }
+
+      if (!data?.session) {
+        setSuccessMessage("Check your email to confirm your account.");
+        return;
+      }
+
       setSuccessMessage(
         signupRole === "vendor"
           ? "Vendor Studio registered successfully!"
           : "Host account created successfully!",
       );
-      setTimeout(() => {
-        onSuccess?.();
+      if (onSuccess) {
+        onSuccess();
         onClose?.();
-      }, 800);
-    }, 600);
+      } else if (asPage) {
+        window.location.href = returnTo;
+      }
+    } catch (err: any) {
+      setErrorMessage(err.message ?? "Registration failed.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  // STUB: Password recovery pending custom SMTP / SMS recovery configuration
-  const handleForgotPasswordSubmit = (e: React.FormEvent) => {
+  // Real password recovery via Supabase
+  const handleForgotPasswordSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!recoveryInput.trim()) {
-      setErrorMessage("Please enter your registered email or phone number.");
+    const cleanInput = recoveryInput.trim();
+    if (!cleanInput) {
+      setErrorMessage("Please enter your registered email address.");
       return;
     }
     setErrorMessage(null);
+    setSuccessMessage(null);
     setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
-      setSuccessMessage("Password reset instructions sent to your email / SMS!");
+
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(cleanInput, {
+        redirectTo: `${window.location.origin}/auth?mode=signin`,
+      });
+      if (error) throw error;
+      setSuccessMessage("Password reset instructions sent to your email!");
       setTimeout(() => {
         setMode("login");
         setSuccessMessage(null);
-      }, 2000);
-    }, 600);
+      }, 3000);
+    } catch (err: any) {
+      setErrorMessage(err.message ?? "Failed to send reset email.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const content = (
@@ -693,6 +816,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                     <Mail className="w-4 h-4 text-muted-foreground absolute left-3 top-3" />
                     <input
                       type="email"
+                      required
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder="priya.sharma@example.com"
@@ -722,6 +846,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                     <Lock className="w-4 h-4 text-muted-foreground absolute left-3 top-3" />
                     <input
                       type={showPassword ? "text" : "password"}
+                      required
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       placeholder="••••••••"
@@ -929,6 +1054,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               <div className="relative">
                 <input
                   type={showPassword ? "text" : "password"}
+                  required
+                  minLength={6}
                   value={signupPassword}
                   onChange={(e) => setSignupPassword(e.target.value)}
                   placeholder="Minimum 6 characters"
