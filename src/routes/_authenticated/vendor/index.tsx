@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Loader2, CalendarDays, Plus, Store } from "lucide-react";
+import { Loader2, CalendarDays, Plus, Store, Layers } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/vendor/")({
   component: VendorHome,
@@ -41,6 +41,8 @@ function VendorHome() {
 
   const vendor = data.vendor;
   const newLeads = data.leads.filter((l: any) => l.status === "new").length;
+  const liveListings = (data.listings ?? []).filter((l: any) => l.status === "live");
+  const canCreatePackage = liveListings.length >= 2;
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-8 pb-24 md:py-12">
@@ -49,20 +51,40 @@ function VendorHome() {
           <h1 className="font-serif text-2xl font-semibold">{vendor.business_name}</h1>
           <p className="mt-1 text-sm capitalize text-muted-foreground">Account status: {vendor.status}</p>
         </div>
-        <div className="flex flex-wrap gap-2">
-          <Button asChild variant="outline" className="rounded-xl">
-            <Link to="/vendor/profile">Business profile</Link>
-          </Button>
-          <Button asChild variant="outline" className="rounded-xl">
-            <Link to="/vendor/leads">All leads</Link>
-          </Button>
-          <Button asChild className="rounded-xl">
-            <Link to="/vendor/listings/new">
-              <Plus className="mr-2 h-4 w-4" /> New listing
-            </Link>
-          </Button>
+        <div className="flex flex-col items-end gap-1.5">
+          <div className="flex flex-wrap gap-2">
+            <Button asChild variant="outline" className="rounded-xl">
+              <Link to="/vendor/profile">Business profile</Link>
+            </Button>
+            <Button asChild variant="outline" className="rounded-xl">
+              <Link to="/vendor/leads">All leads</Link>
+            </Button>
+            <Button asChild variant="outline" className="rounded-xl">
+              <Link to="/vendor/packages">Packages</Link>
+            </Button>
+            {canCreatePackage ? (
+              <Button asChild variant="outline" className="rounded-xl">
+                <Link to="/vendor/packages/new">
+                  <Layers className="mr-1.5 h-4 w-4" /> Create package
+                </Link>
+              </Button>
+            ) : (
+              <Button disabled variant="outline" className="rounded-xl opacity-60 cursor-not-allowed">
+                <Layers className="mr-1.5 h-4 w-4" /> Create package
+              </Button>
+            )}
+            <Button asChild className="rounded-xl">
+              <Link to="/vendor/listings/new">
+                <Plus className="mr-2 h-4 w-4" /> New listing
+              </Link>
+            </Button>
+          </div>
+          {!canCreatePackage && (
+            <span className="text-[11px] text-muted-foreground">
+              Package creation requires min. 2 live listings (currently {liveListings.length})
+            </span>
+          )}
         </div>
-
       </div>
 
       {vendor.status === "pending" && (
