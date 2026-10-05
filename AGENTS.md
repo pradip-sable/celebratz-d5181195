@@ -70,7 +70,11 @@ match it exactly across ALL CSS properties, not just colors:
   — match these directly from the reference file.
 - **Colors**: follow the semantic-token rule above, not the reference file's
   literal classes — colors are the one property that gets translated to this
-  repo's tokens, not copied verbatim.
+  repo's tokens, not copied verbatim. Before using any raw color for a status/state 
+  indicator (live, pending, success, warning, error, booked, available), check whether 
+  --success, --warning, or --destructive already covers it in styles.css — these are 
+  established tokens, reuse them rather than introducing a new raw Tailwind color for 
+  what is fundamentally the same "good/caution/bad" signal.
 - **Fonts**: match which elements use font-serif vs font-brand (or any other
   font utility) exactly as the reference file does, element by element — do
   not assume a heading should get the brand font just because it's a heading.
