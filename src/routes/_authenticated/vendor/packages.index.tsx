@@ -121,8 +121,8 @@ function VendorPackagesIndex() {
       {/* Stats Summary */}
       <div className="mt-8 grid gap-4 grid-cols-2 sm:grid-cols-4">
         <StatCard label="Total Packages" value={packages.length} />
-        <StatCard label="Live Packages" value={liveCount} highlight="emerald" />
-        <StatCard label="Pending Review" value={pendingCount} highlight="amber" />
+        <StatCard label="Live Packages" value={liveCount} highlight="success" />
+        <StatCard label="Pending Review" value={pendingCount} highlight="warning" />
         <StatCard label="Paused" value={pausedCount} />
       </div>
 
@@ -217,7 +217,7 @@ function VendorPackagesIndex() {
                       <div className="font-serif text-lg sm:text-xl font-bold text-foreground">
                         {formatInr(price.total)}
                       </div>
-                      <div className="text-[11px] font-semibold text-emerald-700 dark:text-emerald-400">
+                      <div className="text-[11px] font-semibold text-success">
                         Save {formatInr(price.discount)} (
                         {pkg.discount_type === "percentage"
                           ? `${pkg.discount_value}%`
@@ -267,15 +267,20 @@ function VendorPackagesIndex() {
                       )}
 
                       {isPaused && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          disabled={statusMutation.isPending}
-                          onClick={() => statusMutation.mutate({ packageId: pkg.id, status: "pending" })}
-                          className="rounded-xl text-xs"
-                        >
-                          <PlayCircle className="mr-1.5 h-3.5 w-3.5" /> Resume
-                        </Button>
+                        <div className="flex items-center gap-1.5">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            disabled={statusMutation.isPending}
+                            onClick={() => statusMutation.mutate({ packageId: pkg.id, status: "pending" })}
+                            className="rounded-xl text-xs"
+                          >
+                            <PlayCircle className="mr-1.5 h-3.5 w-3.5" /> Resume
+                          </Button>
+                          <span className="text-[10px] text-muted-foreground">
+                            (Re-queues for admin review)
+                          </span>
+                        </div>
                       )}
 
                       {/* Edit action */}
@@ -303,17 +308,17 @@ function StatCard({
 }: {
   label: string;
   value: number;
-  highlight?: "emerald" | "amber";
+  highlight?: "success" | "warning";
 }) {
   return (
     <div className="rounded-2xl border border-border/60 bg-card p-4 shadow-xs">
       <p className="text-xs font-medium text-muted-foreground">{label}</p>
       <p
         className={`mt-1 font-serif text-2xl font-bold ${
-          highlight === "emerald"
-            ? "text-emerald-700 dark:text-emerald-400"
-            : highlight === "amber"
-            ? "text-amber-700 dark:text-amber-400"
+          highlight === "success"
+            ? "text-success"
+            : highlight === "warning"
+            ? "text-warning"
             : "text-foreground"
         }`}
       >
@@ -327,13 +332,13 @@ function StatusBadge({ status }: { status: string }) {
   switch (status) {
     case "live":
       return (
-        <span className="rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-[11px] font-bold text-emerald-700 dark:text-emerald-400 border border-emerald-500/20 capitalize">
+        <span className="rounded-full bg-success/10 px-2.5 py-0.5 text-[11px] font-bold text-success border border-success/20 capitalize">
           Live
         </span>
       );
     case "pending":
       return (
-        <span className="rounded-full bg-amber-500/10 px-2.5 py-0.5 text-[11px] font-bold text-amber-700 dark:text-amber-400 border border-amber-500/20 capitalize">
+        <span className="rounded-full bg-warning/10 px-2.5 py-0.5 text-[11px] font-bold text-warning border border-warning/20 capitalize">
           Pending Review
         </span>
       );

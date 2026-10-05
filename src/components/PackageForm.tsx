@@ -436,7 +436,7 @@ export const PackageForm: React.FC<PackageFormProps> = ({
               <div
                 className={`rounded-xl border p-3.5 space-y-1 ${
                   price.discount > 0
-                    ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-800 dark:text-emerald-300"
+                    ? "bg-success/10 border-success/30 text-success"
                     : "bg-muted border-border text-muted-foreground"
                 }`}
               >
