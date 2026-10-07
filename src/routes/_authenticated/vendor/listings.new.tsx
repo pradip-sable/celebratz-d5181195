@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Loader2 } from "lucide-react";
+import { TierEditor, type TierDraft, tiersToPayload } from "@/components/TierEditor";
 
 export const Route = createFileRoute("/_authenticated/vendor/listings/new")({
   component: NewListing,
@@ -50,11 +51,19 @@ function NewListing() {
   });
   const [attributes, setAttributes] = useState<Record<string, unknown>>({});
   const [eventTypeIds, setEventTypeIds] = useState<string[]>([]);
+  const [tiers, setTiers] = useState<TierDraft[]>([]);
 
   const categoryFields = useMemo(
     () => (options?.fields ?? []).filter((f: any) => f.category_id === form.category_id),
     [options, form.category_id],
   );
+
+  const hasTiers = tiers.length >= 2;
+  const lowestTierPrice = useMemo(() => {
+    if (!hasTiers) return null;
+    const prices = tiers.map((t) => Number(t.price)).filter((p) => !isNaN(p) && p > 0);
+    return prices.length > 0 ? Math.min(...prices) : null;
+  }, [tiers, hasTiers]);
 
   const mutation = useMutation({
     mutationFn: () =>
@@ -64,11 +73,12 @@ function NewListing() {
           category_id: form.category_id,
           area_id: form.area_id,
           description: form.description,
-          price_from: form.price_from,
+          price_from: hasTiers ? (lowestTierPrice ?? Number(form.price_from) ?? 0) : form.price_from,
           price_unit: form.price_unit as any,
           address: form.address || undefined,
           attributes,
           event_type_ids: eventTypeIds,
+          tiers: tiersToPayload(tiers),
         },
       }),
     onSuccess: () => {
@@ -100,6 +110,22 @@ function NewListing() {
           if (!eventTypeIds.length) {
             toast.error("Select at least one event type");
             return;
+          }
+          if (tiers.length === 1) {
+            toast.error("Package Tiers need at least 2 tiers — or remove the tier to keep flat pricing");
+            return;
+          }
+          if (hasTiers) {
+            for (const [i, t] of tiers.entries()) {
+              if (!t.name.trim()) {
+                toast.error(`Tier ${i + 1} needs a name`);
+                return;
+              }
+              if (!t.price || isNaN(Number(t.price)) || Number(t.price) < 0) {
+                toast.error(`Tier ${i + 1} needs a valid price`);
+                return;
+              }
+            }
           }
           mutation.mutate();
         }}
@@ -158,14 +184,22 @@ function NewListing() {
             <Label htmlFor="price">Starting price (₹)</Label>
             <Input
               id="price"
-              required
+              required={!hasTiers}
+              disabled={hasTiers}
               inputMode="numeric"
-              value={form.price_from}
+              value={hasTiers ? (lowestTierPrice != null ? String(lowestTierPrice) : "") : form.price_from}
               onChange={(e) => setForm({ ...form, price_from: e.target.value })}
             />
+            {hasTiers && (
+              <p className="mt-1 text-xs text-muted-foreground">
+                Automatically set by your lowest tier
+              </p>
+            )}
           </div>
           <div>
-            <Label htmlFor="unit">Price unit</Label>
+            <Label htmlFor="unit">
+              Price unit {hasTiers && <span className="text-xs text-muted-foreground font-normal">(applies to all tiers)</span>}
+            </Label>
             <select
               id="unit"
               className="mt-1 h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
@@ -180,6 +214,8 @@ function NewListing() {
             </select>
           </div>
         </div>
+
+        <TierEditor tiers={tiers} priceUnit={form.price_unit} onChange={setTiers} />
 
         <div>
           <Label htmlFor="description">Description</Label>

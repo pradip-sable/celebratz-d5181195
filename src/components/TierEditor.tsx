@@ -6,6 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { unitLabel } from "@/lib/pricing";
 
 export type TierDraft = {
+  id?: string;
   name: string;
   description: string;
   price: string;
@@ -147,6 +148,7 @@ export function TierEditor({
 
 export function tiersToPayload(tiers: TierDraft[]) {
   return tiers.map((tier) => ({
+    ...(tier.id ? { id: tier.id } : {}),
     name: tier.name.trim(),
     description: tier.description.trim() || undefined,
     price: tier.price,
