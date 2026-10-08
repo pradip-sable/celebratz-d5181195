@@ -24,7 +24,7 @@ export const getAdminOverview = createServerFn({ method: "GET" })
           .order("created_at", { ascending: false }),
         context.supabase
           .from("listings")
-          .select("id, title, slug, status, price_from, price_unit, created_at, category:categories(name), vendor:vendors(business_name), listing_tiers(id, name, price, is_active)")
+          .select("id, title, slug, status, is_featured, price_from, price_unit, created_at, category:categories(name), vendor:vendors(business_name), listing_tiers(id, name, price, is_active)")
           .order("created_at", { ascending: false }),
         context.supabase
           .from("requests")
@@ -38,7 +38,7 @@ export const getAdminOverview = createServerFn({ method: "GET" })
           .limit(50),
         context.supabase
           .from("packages")
-          .select("id, name, slug, status, discount_type, discount_value, created_at, vendor:vendors(business_name), package_listings(listing:listings(id, title, price_from, price_unit, status, categories(name), listing_tiers(id, name, price, is_active)))")
+          .select("id, name, slug, status, rejection_reason, discount_type, discount_value, created_at, vendor:vendors(business_name), package_listings(listing:listings(id, title, price_from, price_unit, status, categories(name), listing_tiers(id, name, price, is_active)))")
           .order("created_at", { ascending: false }),
       ]);
 
