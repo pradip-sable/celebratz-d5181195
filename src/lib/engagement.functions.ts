@@ -8,7 +8,7 @@ export const getWishlist = createServerFn({ method: "GET" })
     const { data, error } = await context.supabase
       .from("wishlists")
       .select(
-        "id, created_at, listing:listings(id, title, slug, price_from, price_unit, rating_avg, review_count, category:categories(name), area:areas(name), listing_media(storage_path))",
+        "id, created_at, listing:listings(id, title, slug, price_from, price_unit, capacity_min, capacity_max, rating_avg, review_count, availability_updated_at, is_featured, google_maps_url, category:categories(name, slug), area:areas(name, slug), listing_media(storage_path, type, position), listing_tiers(id, name, price, is_active, sort_order), listing_attributes(field_key, value))",
       )
       .eq("customer_id", context.userId)
       .order("created_at", { ascending: false });
