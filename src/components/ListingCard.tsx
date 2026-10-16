@@ -8,6 +8,14 @@ import { supabase } from "@/integrations/supabase/client";
 import { effectiveListingPrice, formatInr, unitLabel, type TierLike } from "@/lib/pricing";
 import { toggleWishlist, getWishlist } from "@/lib/engagement.functions";
 import { toggleComparisonId } from "@/hooks/useComparison";
+import {
+  foldListingAttributes,
+  getCateringBadgeText,
+  getPhotographyBadgeText,
+  getDjMusicBadgeText,
+  getDecorationBadgeText,
+  getPanditBadgeText,
+} from "@/lib/listing-attributes";
 
 export type ListingCardData = {
   id: string;
@@ -24,8 +32,8 @@ export type ListingCardData = {
   capacity_min?: number | null;
   capacity_max?: number | null;
   address?: string | null;
-  googleMapsUrl?: string | null;
-  isFeatured?: boolean | null;
+  google_maps_url?: string | null;
+  is_featured?: boolean | null;
   categories?: { id?: string; name: string; slug?: string } | null;
   category?: string | null;
   areas?: { id?: string; name: string; slug?: string } | null;
@@ -35,7 +43,7 @@ export type ListingCardData = {
   listing_tiers?: TierLike[] | null;
   listing_event_types?: { event_types?: { name?: string; slug?: string } | null }[] | null;
   eventTypes?: string[] | null;
-  categoryAttributes?: Record<string, unknown> | null;
+  listing_attributes?: { field_key: string; value: any }[] | null;
 };
 
 export interface ListingCardProps {
@@ -78,10 +86,10 @@ function getGoogleMapsDirectionsUrl(item: {
   title?: string;
   address?: string | null;
   locality?: string | null;
-  googleMapsUrl?: string | null;
+  google_maps_url?: string | null;
 }): string {
-  if (item.googleMapsUrl && item.googleMapsUrl.trim().length > 0) {
-    return item.googleMapsUrl.trim();
+  if (item.google_maps_url && item.google_maps_url.trim().length > 0) {
+    return item.google_maps_url.trim();
   }
   const queryParts = [item.title, item.address || item.locality, "Pune", "Maharashtra"].filter(
     Boolean,
@@ -191,35 +199,19 @@ export function ListingCard({
     listing.availability_updated_at || listing.calendarLastUpdatedAt,
   );
 
-  const isFeatured = isFeaturedProp ?? listing.isFeatured ?? false;
+  const isFeatured = isFeaturedProp ?? listing.is_featured ?? false;
   const ratingValue = listing.rating_avg ? Number(listing.rating_avg).toFixed(1) : "4.8";
   const reviewCount = listing.review_count ?? 0;
 
-  const capacityMin =
-    listing.capacity_min ??
-    (typeof listing.categoryAttributes?.["capacityMin"] === "number"
-      ? listing.categoryAttributes["capacityMin"]
-      : undefined);
+  const capacityMin = listing.capacity_min ?? undefined;
+  const capacityMax = listing.capacity_max ?? undefined;
 
-  const capacityMax =
-    listing.capacity_max ??
-    (typeof listing.categoryAttributes?.["capacityMax"] === "number"
-      ? listing.categoryAttributes["capacityMax"]
-      : undefined);
-
-  const vegType =
-    typeof listing.categoryAttributes?.["vegType"] === "string"
-      ? listing.categoryAttributes["vegType"]
-      : undefined;
-  const deliveryTimelineDays =
-    typeof listing.categoryAttributes?.["deliveryTimelineDays"] === "number" ||
-    typeof listing.categoryAttributes?.["deliveryTimelineDays"] === "string"
-      ? String(listing.categoryAttributes["deliveryTimelineDays"])
-      : undefined;
-  const soundWattage =
-    typeof listing.categoryAttributes?.["soundWattage"] === "string"
-      ? listing.categoryAttributes["soundWattage"]
-      : undefined;
+  const attrs = foldListingAttributes(listing.listing_attributes);
+  const cateringBadge = getCateringBadgeText(attrs.food_types);
+  const photographyBadge = getPhotographyBadgeText(attrs.delivery_days);
+  const djMusicBadge = getDjMusicBadgeText(attrs.genres);
+  const decorationBadge = getDecorationBadgeText(attrs.styles);
+  const panditBadge = getPanditBadgeText(attrs.ceremony_types);
 
   const handleCardClick = () => {
     navigate({
@@ -312,7 +304,7 @@ export function ListingCard({
               title: listing.title,
               locality,
               address: listing.address ?? null,
-              googleMapsUrl: listing.googleMapsUrl ?? null,
+              google_maps_url: listing.google_maps_url ?? null,
             })}
             target="_blank"
             rel="noopener noreferrer"
@@ -368,36 +360,33 @@ export function ListingCard({
                 </span>
               )}
 
-            {categorySlug === "catering" && (
+            {categorySlug === "catering" && cateringBadge && (
               <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200">
-                {vegType || "Pure Veg & Multi-Cuisine"}
+                {cateringBadge}
               </span>
             )}
 
-            {categorySlug === "photography" && (
+            {categorySlug === "photography" && photographyBadge && (
               <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-sky-50 text-sky-800 border border-sky-200">
-                ⚡{" "}
-                {deliveryTimelineDays
-                  ? `${deliveryTimelineDays} Days Delivery`
-                  : "High-Res Candid & Drone"}
+                ⚡ {photographyBadge}
               </span>
             )}
 
-            {categorySlug === "decoration" && (
+            {categorySlug === "decoration" && decorationBadge && (
               <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-rose-50 text-rose-800 border border-rose-200">
-                ✨ Custom Mandap &amp; Floral
+                ✨ {decorationBadge}
               </span>
             )}
 
-            {(categorySlug === "music_dj" || categorySlug === "dj-music") && (
+            {(categorySlug === "music_dj" || categorySlug === "dj-music") && djMusicBadge && (
               <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-purple-50 text-purple-800 border border-purple-200">
-                🔊 {soundWattage || "Pro Sound &amp; Live DJ"}
+                🔊 {djMusicBadge}
               </span>
             )}
 
-            {(categorySlug === "pandit_priest" || categorySlug === "pandit") && (
+            {(categorySlug === "pandit_priest" || categorySlug === "pandit") && panditBadge && (
               <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-orange-50 text-orange-800 border border-orange-200">
-                🔥 Vedic Vivah &amp; Rituals
+                🔥 {panditBadge}
               </span>
             )}
           </div>

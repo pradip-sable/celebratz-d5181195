@@ -3,6 +3,7 @@ import { Link } from "@tanstack/react-router";
 import { Scale, X, ArrowRight, Star } from "lucide-react";
 import { useComparison, resolveListingMediaUrl, type ComparedListing } from "@/hooks/useComparison";
 import { formatInr, unitLabel } from "@/lib/pricing";
+import { foldListingAttributes } from "@/lib/listing-attributes";
 
 const FALLBACK_IMAGE =
   "https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&fit=crop&q=80&w=800";
@@ -79,6 +80,76 @@ export const ComparisonBar: React.FC = () => {
   );
 };
 
+type CategoryRowDef = {
+  key: string;
+  label: string;
+  unit?: string;
+};
+
+const CATEGORY_COMPARE_ROWS: Record<string, CategoryRowDef[]> = {
+  venues: [
+    { key: "venue_type", label: "Venue Type" },
+    { key: "indoor_outdoor", label: "Indoor / Outdoor" },
+    { key: "parking", label: "Parking Available" },
+    { key: "ac_available", label: "Air Conditioning" },
+    { key: "catering_policy", label: "Catering Policy" },
+  ],
+  catering: [
+    { key: "food_types", label: "Food Types" },
+    { key: "cuisine_types", label: "Cuisine Types" },
+    { key: "min_guests", label: "Minimum Guests", unit: "guests" },
+  ],
+  photography: [
+    { key: "coverage_type", label: "Coverage Type" },
+    { key: "hours_included", label: "Hours Included", unit: "hours" },
+    { key: "delivery_days", label: "Delivery Timeline", unit: "days" },
+  ],
+  "dj-music": [
+    { key: "genres", label: "Genres" },
+    { key: "equipment_included", label: "Equipment Included" },
+    { key: "hours_included", label: "Hours Included", unit: "hours" },
+  ],
+  decoration: [
+    { key: "styles", label: "Decoration Styles" },
+    { key: "setup_included", label: "Setup Included" },
+  ],
+  pandit: [
+    { key: "ceremony_types", label: "Ceremony Types" },
+    { key: "languages", label: "Languages" },
+    { key: "rituals_included", label: "Rituals Included" },
+  ],
+};
+
+function normalizeCategorySlug(slug?: string | null): string {
+  if (!slug) return "";
+  const s = slug.toLowerCase();
+  if (s === "venue" || s === "venues") return "venues";
+  if (s === "music_dj" || s === "dj-music") return "dj-music";
+  if (s === "pandit_priest" || s === "pandit") return "pandit";
+  return s;
+}
+
+function hasAttributeValue(val: unknown): boolean {
+  if (val === null || val === undefined || val === "") return false;
+  if (Array.isArray(val) && val.length === 0) return false;
+  return true;
+}
+
+function formatAttributeValue(val: unknown, unit?: string): string {
+  if (val === null || val === undefined || val === "") return "—";
+  if (typeof val === "boolean") {
+    return val ? "Yes" : "No";
+  }
+  if (Array.isArray(val)) {
+    const items = val.filter((item) => item !== null && item !== undefined && item !== "");
+    return items.length > 0 ? items.join(", ") : "—";
+  }
+  if (typeof val === "number") {
+    return unit ? `${val} ${unit}` : String(val);
+  }
+  return String(val);
+}
+
 export const ComparisonView: React.FC = () => {
   const { comparisonIds, listings, isLoading, removeComparison, clearComparison } = useComparison();
 
@@ -106,6 +177,25 @@ export const ComparisonView: React.FC = () => {
   }
 
   const comparedItems = listings;
+
+  const itemAttrsMap = new Map<string, Record<string, any>>(
+    comparedItems.map((item) => [item.id, foldListingAttributes(item.listing_attributes)]),
+  );
+
+  const hasAnyVenueCapacity = comparedItems.some(
+    (l) =>
+      normalizeCategorySlug(l.categories?.slug) === "venues" &&
+      (l.capacity_min != null || l.capacity_max != null),
+  );
+
+  const isRowActiveForCategory = (cat: string, rowKey: string): boolean => {
+    return comparedItems.some((item) => {
+      const itemCat = normalizeCategorySlug(item.categories?.slug);
+      if (itemCat !== cat) return false;
+      const attrs = itemAttrsMap.get(item.id) || {};
+      return hasAttributeValue(attrs[rowKey]);
+    });
+  };
 
   return (
     <div className="max-w-6xl mx-auto space-y-6 pb-20">
@@ -156,20 +246,16 @@ export const ComparisonView: React.FC = () => {
                 const coverUrl = resolveListingMediaUrl(coverMedia?.storage_path) || FALLBACK_IMAGE;
                 const locality = item.areas?.name;
                 const categoryName = item.categories?.name || "Service";
-                const categorySlug = item.categories?.slug || "";
+                const normalizedCat = normalizeCategorySlug(item.categories?.slug);
                 const priceDisplay = item.effective_price
                   ? formatInr(item.effective_price)
                   : formatInr(item.price_from ?? 0);
                 const unitDisplay = unitLabel(item.price_unit);
 
-                const categoryAttrs = (item.category_attributes || {}) as Record<string, unknown>;
-                const dietaryOptions =
-                  (categoryAttrs["veg_type"] as string) ||
-                  (categoryAttrs["vegType"] as string) ||
-                  (categoryAttrs["dietary"] as string);
-                const photographyStyle =
-                  (categoryAttrs["style"] as string) ||
-                  (categoryAttrs["photography_style"] as string);
+                const attrs = itemAttrsMap.get(item.id) || {};
+                const activeCategoryRows = (CATEGORY_COMPARE_ROWS[normalizedCat] || []).filter((row) =>
+                  isRowActiveForCategory(normalizedCat, row.key),
+                );
 
                 const eventTypes = (item.listing_event_types || [])
                   .map((et) => et.event_types?.name)
@@ -239,37 +325,29 @@ export const ComparisonView: React.FC = () => {
                         </span>
                       </div>
 
-                      {categorySlug === "venues" &&
-                        (item.capacity_min != null || item.capacity_max != null) && (
-                          <div>
-                            <span className="text-[10px] text-muted-foreground font-bold uppercase block">
-                              Guest Capacity
-                            </span>
-                            <span className="font-semibold text-foreground">
-                              {item.capacity_min ?? 0} - {item.capacity_max ?? "—"} Guests
-                            </span>
-                          </div>
-                        )}
-
-                      {categorySlug === "catering" && dietaryOptions && (
+                      {normalizedCat === "venues" && hasAnyVenueCapacity && (
                         <div>
                           <span className="text-[10px] text-muted-foreground font-bold uppercase block">
-                            Dietary Options
+                            Guest Capacity
                           </span>
-                          <span className="font-semibold text-emerald-600 dark:text-emerald-400">
-                            {dietaryOptions}
+                          <span className="font-semibold text-foreground">
+                            {item.capacity_min != null || item.capacity_max != null
+                              ? `${item.capacity_min ?? 0} - ${item.capacity_max ?? "—"} Guests`
+                              : "—"}
                           </span>
                         </div>
                       )}
 
-                      {categorySlug === "photography" && photographyStyle && (
-                        <div>
+                      {activeCategoryRows.map((row) => (
+                        <div key={row.key}>
                           <span className="text-[10px] text-muted-foreground font-bold uppercase block">
-                            Style
+                            {row.label}
                           </span>
-                          <span className="font-semibold text-foreground">{photographyStyle}</span>
+                          <span className="font-semibold text-foreground">
+                            {formatAttributeValue(attrs[row.key], row.unit)}
+                          </span>
                         </div>
-                      )}
+                      ))}
 
                       {eventTypes.length > 0 && (
                         <div>

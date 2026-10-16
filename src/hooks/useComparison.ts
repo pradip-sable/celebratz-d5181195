@@ -23,6 +23,7 @@ export type ComparedListing = {
   is_featured?: boolean | null;
   google_maps_url?: string | null;
   category_attributes?: Record<string, unknown> | null;
+  listing_attributes?: { field_key: string; value: any }[] | null;
   categories?: { name: string; slug: string; icon?: string | null } | null;
   areas?: { name: string; slug: string } | null;
   listing_media?: { storage_path: string; type?: string | null; position?: number | null }[] | null;
@@ -138,6 +139,7 @@ export function useComparison() {
           areas(name, slug),
           listing_media(storage_path, type, position),
           listing_tiers(id, name, price, is_active, sort_order),
+          listing_attributes(field_key, value),
           listing_event_types(event_types(name, slug))
         `,
         )
@@ -162,7 +164,7 @@ export function useComparison() {
           return {
             ...item,
             listing_media: sortedMedia,
-            category_attributes: item.category_attributes as Record<string, unknown> | null,
+            listing_attributes: item.listing_attributes as { field_key: string; value: any }[] | null,
             effective_price: effectiveListingPrice(item as never),
           };
         });

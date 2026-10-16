@@ -66,6 +66,13 @@ function WishlistPage() {
             if (!listing) return null;
             const listingData = {
               ...listing,
+              capacity_min: listing.capacity_min,
+              capacity_max: listing.capacity_max,
+              availability_updated_at: listing.availability_updated_at,
+              is_featured: listing.is_featured,
+              google_maps_url: listing.google_maps_url,
+              listing_tiers: listing.listing_tiers,
+              listing_attributes: listing.listing_attributes,
               categories: listing.category,
               areas: listing.area,
             };

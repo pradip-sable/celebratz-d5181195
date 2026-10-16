@@ -62,7 +62,6 @@ function Home() {
             <ListingCard
               key={listing.id}
               listing={listing}
-              isFeatured
               onEnquire={(listing) => setEnquiringListingId(listing.id)}
             />
           ))}
