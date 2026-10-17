@@ -123,7 +123,7 @@ function VendorHome() {
                     </p>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="rounded-full bg-secondary px-2.5 py-1 text-xs font-medium capitalize">
+                    <span className="rounded-full bg-muted px-2.5 py-1 text-xs font-medium capitalize">
                       {listing.status}
                     </span>
                     <Button asChild variant="outline" size="sm" className="rounded-xl">

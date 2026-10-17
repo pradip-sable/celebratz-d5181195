@@ -179,7 +179,7 @@ export function MobileBottomNav() {
             to="/vendor"
             className={`relative flex flex-col items-center justify-center w-14 py-1 rounded-lg transition-colors ${
               isVendorListingsActive
-                ? "text-secondary-foreground font-bold"
+                ? "text-secondary font-bold"
                 : "text-muted-foreground hover:text-foreground"
             }`}
           >

@@ -153,7 +153,7 @@ function ProfilePage() {
               />
               <Button
                 type="button"
-                variant="secondary"
+                variant="outline"
                 className="rounded-xl"
                 disabled={verify.isPending || !profile?.phone}
                 onClick={() => verify.mutate()}

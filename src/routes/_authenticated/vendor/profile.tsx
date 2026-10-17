@@ -86,7 +86,7 @@ function VendorProfile() {
     <div className="mx-auto max-w-2xl px-4 py-8 pb-24 md:py-12">
       <div className="flex items-center gap-3">
         <h1 className="font-serif text-2xl font-semibold">Business profile</h1>
-        {vendor?.status && <Badge variant={vendor.status === "approved" ? "default" : "secondary"}>{vendor.status}</Badge>}
+        {vendor?.status && <Badge variant={vendor.status === "approved" ? "default" : "outline"}>{vendor.status}</Badge>}
       </div>
       <p className="mt-2 text-sm text-muted-foreground">
         These details are shown to customers and used when we share leads with you.

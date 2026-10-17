@@ -105,7 +105,7 @@ function VendorLeads() {
                   <p className="text-sm text-muted-foreground">{lead.listing?.title}</p>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Badge variant="secondary">
+                  <Badge variant="outline">
                     {lead.kind === "booking_request" ? "Booking request" : "Enquiry"}
                   </Badge>
                   <Badge variant={lead.status === "accepted" ? "default" : "outline"}>{lead.status}</Badge>

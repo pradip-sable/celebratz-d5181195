@@ -328,8 +328,8 @@ export function Navbar() {
               <span>Wishlist</span>
               {wishlistCount > 0 && (
                 <Badge
-                  variant="secondary"
-                  className="px-1.5 py-0 text-[10px] font-bold bg-destructive text-white rounded-full leading-tight"
+                  variant="destructive"
+                  className="px-1.5 py-0 text-[10px] font-bold rounded-full leading-tight"
                 >
                   {wishlistCount}
                 </Badge>
@@ -687,8 +687,8 @@ export function Navbar() {
                       <span>❤️ Saved Wishlist</span>
                       {wishlistCount > 0 && (
                         <Badge
-                          variant="secondary"
-                          className="bg-destructive text-white rounded-full px-1.5 py-0 text-[10px]"
+                          variant="destructive"
+                          className="rounded-full px-1.5 py-0 text-[10px]"
                         >
                           {wishlistCount}
                         </Badge>

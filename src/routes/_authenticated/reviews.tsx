@@ -65,7 +65,7 @@ function MyReviews() {
               <div key={review.id} className="rounded-2xl border border-border/60 bg-card p-4 shadow-sm">
                 <div className="flex items-center justify-between gap-3">
                   <p className="font-medium">{review.listing?.title}</p>
-                  <span className="rounded-full bg-secondary px-2.5 py-1 text-xs font-medium capitalize">
+                  <span className="rounded-full bg-muted px-2.5 py-1 text-xs font-medium capitalize">
                     {review.status}
                   </span>
                 </div>

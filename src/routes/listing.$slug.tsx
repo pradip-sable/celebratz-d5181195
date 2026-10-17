@@ -338,7 +338,7 @@ function ListingPage() {
             {eventTypes.length > 0 && (
               <div className="mt-5 flex flex-wrap gap-2">
                 {eventTypes.map((name: string) => (
-                  <span key={name} className="rounded-full bg-secondary px-3 py-1 text-xs font-medium">
+                  <span key={name} className="rounded-full bg-muted px-3 py-1 text-xs font-medium">
                     {name}
                   </span>
                 ))}

@@ -81,7 +81,7 @@ function DashboardContent() {
                     <p className="font-medium">{req.listing?.title ?? "Listing"}</p>
                     <p className="text-sm text-muted-foreground capitalize">{req.kind.replace("_", " ")} • {req.status}</p>
                   </div>
-                  <span className="rounded-full bg-secondary px-2.5 py-1 text-xs font-medium capitalize">
+                  <span className="rounded-full bg-muted px-2.5 py-1 text-xs font-medium capitalize">
                     {req.status}
                   </span>
                 </div>

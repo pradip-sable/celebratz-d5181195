@@ -356,7 +356,7 @@ function StatusBadge({ status }: { status: string }) {
       );
     default:
       return (
-        <span className="rounded-full bg-secondary px-2.5 py-0.5 text-[11px] font-bold text-secondary-foreground capitalize">
+        <span className="rounded-full bg-muted px-2.5 py-0.5 text-[11px] font-bold text-muted-foreground capitalize">
           {status}
         </span>
       );

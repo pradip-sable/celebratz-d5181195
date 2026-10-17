@@ -180,7 +180,7 @@ export const PackageForm: React.FC<PackageFormProps> = ({
         </Link>
 
         {isEdit && currentStatus && (
-          <span className="rounded-full bg-secondary px-3 py-1 text-xs font-semibold uppercase tracking-wider text-secondary-foreground">
+          <span className="rounded-full bg-muted px-3 py-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
             Status: {currentStatus}
           </span>
         )}
