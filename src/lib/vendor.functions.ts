@@ -141,7 +141,7 @@ export const getListingForEdit = createServerFn({ method: "GET" })
     const { data: listing, error } = await context.supabase
       .from("listings")
       .select(
-        "id, title, description, category_id, area_id, address, google_maps_url, category_attributes, price_from, price_unit, status, listing_attributes(field_key, value), listing_event_types(event_type_id), listing_tiers(id, name, description, price, features, sort_order, is_active)",
+        "id, title, description, category_id, area_id, address, google_maps_url, category_attributes, price_from, price_unit, status, listing_attributes(field_key, value), listing_event_types(event_type_id), listing_tiers(id, name, description, price, features, sort_order, is_active), listing_media(id, storage_path, type, position, alt_text)",
       )
       .eq("id", data.listingId)
       .single();
@@ -300,6 +300,59 @@ export const updateListing = createServerFn({ method: "POST" })
     return { ok: true, status: nextStatus, sentBackToReview: nextStatus === "pending" && existing.status === "live" };
   });
 
+
+export const setListingMedia = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data) =>
+    z
+      .object({
+        listingId: z.string().uuid(),
+        media: z
+          .array(
+            z.object({
+              storage_path: z.string().min(1).max(500),
+              type: z.literal("image").default("image"),
+              alt_text: z.string().max(200).optional(),
+            }),
+          )
+          .max(10),
+      })
+      .parse(data),
+  )
+  .handler(async ({ context, data }) => {
+    const { data: listing, error: listingError } = await context.supabase
+      .from("listings")
+      .select("id, vendor:vendors!inner(owner_id)")
+      .eq("id", data.listingId)
+      .maybeSingle();
+    if (listingError) throw listingError;
+    const ownerId = (listing?.vendor as { owner_id?: string } | null)?.owner_id;
+    if (!listing || ownerId !== context.userId) throw new Error("You can only edit photos on your own listings");
+
+    for (const item of data.media) {
+      const p = item.storage_path;
+      let valid = false;
+      if (p.startsWith("https://")) {
+        try {
+          new URL(p);
+          valid = true;
+        } catch {
+          valid = false;
+        }
+      } else if (!p.startsWith("/") && !p.includes("..")) {
+        const segments = p.split("/");
+        valid = segments.length >= 2 && segments[0] === context.userId && segments.every((s) => s.length > 0);
+      }
+      if (!valid) throw new Error(`Invalid photo path: ${p}`);
+    }
+
+    const { error } = await context.supabase.rpc("replace_listing_media", {
+      _listing_id: data.listingId,
+      _media: data.media.map((m) => ({ storage_path: m.storage_path, type: m.type, alt_text: m.alt_text ?? null })),
+    });
+    if (error) throw error;
+    return { ok: true };
+  });
 
 export const getVendorLeads = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])

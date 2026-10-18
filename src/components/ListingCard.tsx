@@ -207,11 +207,11 @@ export function ListingCard({
   const capacityMax = listing.capacity_max ?? undefined;
 
   const attrs = foldListingAttributes(listing.listing_attributes);
-  const cateringBadge = getCateringBadgeText(attrs.food_types);
-  const photographyBadge = getPhotographyBadgeText(attrs.delivery_days);
-  const djMusicBadge = getDjMusicBadgeText(attrs.genres);
-  const decorationBadge = getDecorationBadgeText(attrs.styles);
-  const panditBadge = getPanditBadgeText(attrs.ceremony_types);
+  const cateringBadge = getCateringBadgeText(attrs["food_types"]);
+  const photographyBadge = getPhotographyBadgeText(attrs["delivery_days"]);
+  const djMusicBadge = getDjMusicBadgeText(attrs["genres"]);
+  const decorationBadge = getDecorationBadgeText(attrs["styles"]);
+  const panditBadge = getPanditBadgeText(attrs["ceremony_types"]);
 
   const handleCardClick = () => {
     navigate({

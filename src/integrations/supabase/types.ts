@@ -978,6 +978,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      replace_listing_media: {
+        Args: { _listing_id: string; _media: Json }
+        Returns: undefined
+      }
       update_listing_rating: {
         Args: { _listing_id: string }
         Returns: undefined
