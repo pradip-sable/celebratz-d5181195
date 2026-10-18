@@ -141,7 +141,7 @@ export const getListingForEdit = createServerFn({ method: "GET" })
     const { data: listing, error } = await context.supabase
       .from("listings")
       .select(
-        "id, title, description, category_id, area_id, address, google_maps_url, category_attributes, price_from, price_unit, status, listing_attributes(field_key, value), listing_event_types(event_type_id), listing_tiers(id, name, description, price, features, sort_order, is_active)",
+        "id, title, description, category_id, area_id, address, google_maps_url, category_attributes, price_from, price_unit, status, listing_attributes(field_key, value), listing_event_types(event_type_id), listing_tiers(id, name, description, price, features, sort_order, is_active), listing_media(id, storage_path, type, position, alt_text)",
       )
       .eq("id", data.listingId)
       .single();
