@@ -35,7 +35,7 @@ import {
 } from "@/components/ui/sheet";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { BrandName } from "@/components/BrandName";
+import { BrandLogo } from "@/components/BrandLogo";
 
 export function Navbar() {
   const { pathname } = useLocation();
@@ -175,14 +175,10 @@ export function Navbar() {
           {/* Brand Logo & Name */}
           <Link
             to="/"
-            className="flex items-center gap-2.5 cursor-pointer select-none group"
+            className="flex items-center cursor-pointer select-none group"
             id="navbar-brand"
           >
-            <div className="w-9 h-9 rounded-xl bg-primary-dark flex items-center justify-center text-white font-brand text-lg shadow-xs border border-primary-dark/20 group-hover:scale-105 transition-transform shrink-0">
-              <span className="lowercase text-white">c</span>
-              <span className="text-accent -ml-0.5 text-xs font-black">&bull;</span>
-            </div>
-            <BrandName size="2xl" weight="black" showTagline={true} taglineText="A Celebration Marketplace" />
+            <BrandLogo size="desktop" />
           </Link>
 
           {/* Divider */}
@@ -536,11 +532,7 @@ export function Navbar() {
             <SheetContent side="right" className="w-full sm:max-w-md p-4 space-y-4 overflow-y-auto">
               <SheetHeader className="text-left pb-2">
                 <SheetTitle className="flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-lg bg-primary-dark flex items-center justify-center text-white font-brand text-sm shadow-xs">
-                    <span className="lowercase text-white">c</span>
-                    <span className="text-accent -ml-0.5 text-xs font-black">&bull;</span>
-                  </div>
-                  <span className="font-brand font-black text-lg tracking-tight">celebratz</span>
+                  <BrandLogo size="mobile-menu" />
                 </SheetTitle>
               </SheetHeader>
 

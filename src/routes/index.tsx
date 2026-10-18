@@ -1,10 +1,13 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { useState } from "react";
+import { Sparkles, ArrowRight } from "lucide-react";
 import { getHomeData } from "@/lib/listings.functions";
 import { HomeHero } from "@/components/HomeHero";
 import { ListingCard } from "@/components/ListingCard";
 import { RequestEnquireModal } from "@/components/RequestEnquireModal";
+import { PopularLocalities } from "@/components/PopularLocalities";
+import { HowItWorks } from "@/components/HowItWorks";
 
 export const Route = createFileRoute("/")({
   component: Home,
@@ -35,7 +38,7 @@ function Home() {
   const [enquiringListingId, setEnquiringListingId] = useState<string | null>(null);
 
   return (
-    <div className="mx-auto max-w-5xl px-4 pb-24 md:pb-12 pt-6 space-y-12">
+    <div className="w-full max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 pb-24 md:pb-12 space-y-12">
       <HomeHero
         categories={data.categories}
         eventTypes={data.eventTypes}
@@ -44,20 +47,25 @@ function Home() {
 
       {/* Featured */}
       <section className="space-y-5">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
           <div>
-            <h2 className="font-serif text-xl font-bold md:text-2xl text-foreground">
-              Featured listings
+            <div className="flex items-center gap-1.5 text-xs font-bold text-accent uppercase tracking-wider">
+              <Sparkles className="w-4 h-4 text-accent" />
+              <span>Curated Pune Selections</span>
+            </div>
+            <h2 className="font-serif font-extrabold text-2xl sm:text-3xl text-foreground">
+              Featured Venues &amp; Vendors
             </h2>
-            <p className="text-xs sm:text-sm text-muted-foreground">
-              Top rated venues &amp; services in Pune
-            </p>
           </div>
-          <Link to="/search" className="text-sm font-medium text-primary hover:underline">
-            View all
+          <Link
+            to="/search"
+            className="text-xs sm:text-sm font-bold text-primary hover:text-primary-dark flex items-center gap-1 group"
+          >
+            <span>Explore all Pune listings</span>
+            <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
           </Link>
         </div>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
           {data.featured.map((listing) => (
             <ListingCard
               key={listing.id}
@@ -67,6 +75,10 @@ function Home() {
           ))}
         </div>
       </section>
+
+      <PopularLocalities areas={data.areas} />
+
+      <HowItWorks />
 
       <RequestEnquireModal
         listingId={enquiringListingId}
