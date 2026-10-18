@@ -165,6 +165,7 @@ export function useComparison() {
             ...item,
             listing_media: sortedMedia,
             listing_attributes: item.listing_attributes as { field_key: string; value: any }[] | null,
+            category_attributes: item.category_attributes as Record<string, unknown> | null,
             effective_price: effectiveListingPrice(item as never),
           };
         });
