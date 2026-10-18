@@ -5,7 +5,7 @@ Vendors can upload listing photos to their own storage folder and save the photo
 ## 1. Storage bucket
 - Create a public bucket `listing-media` with a 5 MB limit and these allowed file types: image/jpeg, image/png, image/webp. Allowed types are set on the bucket when it is created. If the bucket tool can't set them, a later migration sets `allowed_mime_types` on that one bucket row only.
 - Migration with policies on `storage.objects`, scoped to `bucket_id = 'listing-media'`:
-  - SELECT: public, open to anon and authenticated.
+  - SELECT: authenticated users only, limited to `(storage.foldername(name))[1] = auth.uid()::text`. No anon SELECT policy. The bucket is public, so public URLs still serve images, but nobody can list other vendors' folders.
   - INSERT, UPDATE, DELETE: authenticated users only, and only where `(storage.foldername(name))[1] = auth.uid()::text`. UPDATE also checks this with `WITH CHECK`.
   - No other write policies.
 
