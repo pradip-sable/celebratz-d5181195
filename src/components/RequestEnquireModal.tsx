@@ -22,6 +22,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { resolveMediaUrl } from "@/lib/media-url";
 import {
   submitRequest,
   submitRequestAsUser,
@@ -307,10 +308,12 @@ export const RequestEnquireModal: React.FC<RequestEnquireModalProps> = ({
 
   // Target summary data
   const targetTitle = listing?.title || pkgTarget?.name || pkgTarget?.title || "Celebration Request";
-  const targetCoverImage =
+  const rawCoverImage =
     listing?.coverImage ||
     listing?.listing_media?.[0]?.storage_path ||
-    pkgTarget?.cover_image ||
+    pkgTarget?.cover_image;
+  const targetCoverImage =
+    resolveMediaUrl(rawCoverImage) ||
     "https://images.unsplash.com/photo-1519225421980-715cb0215aed?w=800&q=80";
 
   const targetLocality =

@@ -1,10 +1,11 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { getVendorFormOptions } from "@/lib/vendor.functions";
+import { getVendorFormOptions, setListingMedia } from "@/lib/vendor.functions";
 import { createListing } from "@/lib/dashboard.functions";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,6 +13,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Loader2 } from "lucide-react";
 import { TierEditor, type TierDraft, tiersToPayload } from "@/components/TierEditor";
+import { ListingPhotoUploader, type MediaItem } from "@/components/ListingPhotoUploader";
 
 export const Route = createFileRoute("/_authenticated/vendor/listings/new")({
   component: NewListing,
@@ -38,6 +40,7 @@ function NewListing() {
   const navigate = useNavigate();
   const fetchOptions = useServerFn(getVendorFormOptions);
   const create = useServerFn(createListing);
+  const saveMedia = useServerFn(setListingMedia);
   const { data: options, isLoading } = useQuery({ queryKey: ["vendor-form-options"], queryFn: () => fetchOptions() });
 
   const [form, setForm] = useState({
@@ -52,6 +55,20 @@ function NewListing() {
   const [attributes, setAttributes] = useState<Record<string, unknown>>({});
   const [eventTypeIds, setEventTypeIds] = useState<string[]>([]);
   const [tiers, setTiers] = useState<TierDraft[]>([]);
+  const [photos, setPhotos] = useState<MediaItem[]>([]);
+  const [photoError, setPhotoError] = useState<string | null>(null);
+  const [draftFolderId] = useState(() =>
+    typeof crypto !== "undefined" && crypto.randomUUID
+      ? crypto.randomUUID()
+      : Math.random().toString(36).substring(2, 15),
+  );
+  const [userId, setUserId] = useState<string>("");
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => {
+      if (data?.user) setUserId(data.user.id);
+    });
+  }, []);
 
   const categoryFields = useMemo(
     () => (options?.fields ?? []).filter((f: any) => f.category_id === form.category_id),
@@ -66,8 +83,8 @@ function NewListing() {
   }, [tiers, hasTiers]);
 
   const mutation = useMutation({
-    mutationFn: () =>
-      create({
+    mutationFn: async () => {
+      const res = await create({
         data: {
           title: form.title,
           category_id: form.category_id,
@@ -80,8 +97,29 @@ function NewListing() {
           event_type_ids: eventTypeIds,
           tiers: tiersToPayload(tiers),
         },
-      }),
-    onSuccess: () => {
+      });
+
+      if (!res?.listingId) {
+        throw new Error("Could not create listing");
+      }
+      const newListingId = res.listingId;
+
+      try {
+        await saveMedia({
+          data: {
+            listingId: newListingId,
+            media: photos.map((p) => ({ storage_path: p.path })),
+          },
+        });
+      } catch (mediaErr: any) {
+        toast.error("Listing created, but photo upload failed. Please add photos on the edit page.");
+        navigate({
+          to: "/vendor/listings/$listingId/edit",
+          params: { listingId: newListingId },
+        });
+        return;
+      }
+
       toast.success("Listing submitted for review");
       navigate({ to: "/vendor" });
     },
@@ -107,6 +145,11 @@ function NewListing() {
         className="mt-6 space-y-5"
         onSubmit={(e) => {
           e.preventDefault();
+          if (photos.length === 0) {
+            setPhotoError("Please add at least one photo before submitting.");
+            toast.error("Please add at least one photo");
+            return;
+          }
           if (!eventTypeIds.length) {
             toast.error("Select at least one event type");
             return;
@@ -216,6 +259,18 @@ function NewListing() {
         </div>
 
         <TierEditor tiers={tiers} priceUnit={form.price_unit} onChange={setTiers} />
+
+        <ListingPhotoUploader
+          value={photos}
+          onChange={(newPhotos) => {
+            setPhotos(newPhotos);
+            if (newPhotos.length > 0) setPhotoError(null);
+          }}
+          folderId={draftFolderId}
+          userId={userId}
+          error={photoError}
+          disabled={mutation.isPending}
+        />
 
         <div>
           <Label htmlFor="description">Description</Label>

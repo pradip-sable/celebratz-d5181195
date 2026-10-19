@@ -32,17 +32,7 @@ export type ComparedListing = {
     { event_types?: { name?: string | null; slug?: string | null } | null }[] | null;
 };
 
-export function resolveListingMediaUrl(storagePathOrUrl: string | null | undefined): string | null {
-  if (!storagePathOrUrl) return null;
-  if (storagePathOrUrl.startsWith("http://") || storagePathOrUrl.startsWith("https://")) {
-    return storagePathOrUrl;
-  }
-  const bucket = "listing-media";
-  const cleanPath = storagePathOrUrl.startsWith(`${bucket}/`)
-    ? storagePathOrUrl.slice(bucket.length + 1)
-    : storagePathOrUrl;
-  return supabase.storage.from(bucket).getPublicUrl(cleanPath).data.publicUrl;
-}
+export { resolveMediaUrl as resolveListingMediaUrl } from "@/lib/media-url";
 
 export function getComparisonIds(): string[] {
   if (typeof window === "undefined") return [];

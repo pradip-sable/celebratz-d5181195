@@ -3,7 +3,8 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { getVendorFormOptions, getListingForEdit, updateListing } from "@/lib/vendor.functions";
+import { getVendorFormOptions, getListingForEdit, updateListing, setListingMedia } from "@/lib/vendor.functions";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,6 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Loader2 } from "lucide-react";
 import { TierEditor, type TierDraft, tiersToPayload } from "@/components/TierEditor";
+import { ListingPhotoUploader, type MediaItem } from "@/components/ListingPhotoUploader";
 
 export const Route = createFileRoute("/_authenticated/vendor/listings/$listingId/edit")({
   component: EditListing,
@@ -39,6 +41,7 @@ function EditListing() {
   const fetchOptions = useServerFn(getVendorFormOptions);
   const fetchListing = useServerFn(getListingForEdit);
   const save = useServerFn(updateListing);
+  const saveMedia = useServerFn(setListingMedia);
 
   const { data: options } = useQuery({ queryKey: ["vendor-form-options"], queryFn: () => fetchOptions() });
   const { data: listing, isLoading } = useQuery({
@@ -57,6 +60,16 @@ function EditListing() {
   const [attributes, setAttributes] = useState<Record<string, unknown>>({});
   const [eventTypeIds, setEventTypeIds] = useState<string[]>([]);
   const [tiers, setTiers] = useState<TierDraft[]>([]);
+  const [photos, setPhotos] = useState<MediaItem[]>([]);
+  const [removedPhotoPaths, setRemovedPhotoPaths] = useState<string[]>([]);
+  const [photoError, setPhotoError] = useState<string | null>(null);
+  const [userId, setUserId] = useState<string>("");
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => {
+      if (data?.user) setUserId(data.user.id);
+    });
+  }, []);
 
   useEffect(() => {
     if (!listing) return;
@@ -84,6 +97,12 @@ function EditListing() {
         features: Array.isArray(t.features) ? t.features : [],
       }));
     setTiers(activeListingTiers);
+
+    const sortedMedia = (listing.listing_media ?? [])
+      .slice()
+      .sort((a: any, b: any) => (a.position ?? 0) - (b.position ?? 0))
+      .map((m: any) => ({ path: m.storage_path }));
+    setPhotos(sortedMedia);
   }, [listing]);
 
   const categoryFields = useMemo(
@@ -99,8 +118,8 @@ function EditListing() {
   }, [tiers, hasTiers]);
 
   const mutation = useMutation({
-    mutationFn: () =>
-      save({
+    mutationFn: async () => {
+      await save({
         data: {
           listingId,
           title: form.title,
@@ -113,7 +132,24 @@ function EditListing() {
           event_type_ids: eventTypeIds,
           tiers: tiersToPayload(tiers),
         },
-      }),
+      });
+
+      await saveMedia({
+        data: {
+          listingId,
+          media: photos.map((p) => ({ storage_path: p.path })),
+        },
+      });
+
+      if (removedPhotoPaths.length > 0 && userId) {
+        const pathsToDelete = removedPhotoPaths.filter(
+          (p) => !p.startsWith("http://") && !p.startsWith("https://") && p.startsWith(`${userId}/`),
+        );
+        if (pathsToDelete.length > 0) {
+          await supabase.storage.from("listing-media").remove(pathsToDelete).catch(() => {});
+        }
+      }
+    },
     onSuccess: () => {
       toast.success("Listing updated");
       navigate({ to: "/vendor" });
@@ -138,6 +174,11 @@ function EditListing() {
         className="mt-6 space-y-5"
         onSubmit={(e) => {
           e.preventDefault();
+          if (photos.length === 0) {
+            setPhotoError("Please add at least one photo before saving.");
+            toast.error("Please add at least one photo");
+            return;
+          }
           if (!eventTypeIds.length) {
             toast.error("Select at least one event type");
             return;
@@ -226,6 +267,19 @@ function EditListing() {
         </div>
 
         <TierEditor tiers={tiers} priceUnit={form.price_unit} onChange={setTiers} />
+
+        <ListingPhotoUploader
+          value={photos}
+          onChange={(newPhotos) => {
+            setPhotos(newPhotos);
+            if (newPhotos.length > 0) setPhotoError(null);
+          }}
+          onRemovePhoto={(removedPath) => setRemovedPhotoPaths((prev) => [...prev, removedPath])}
+          folderId={listingId}
+          userId={userId}
+          error={photoError}
+          disabled={mutation.isPending}
+        />
 
         <div>
           <Label htmlFor="description">Description</Label>

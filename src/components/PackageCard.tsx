@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { Gift, Star } from "lucide-react";
 import { computePackagePrice, formatInr, rollupRatings, type DiscountType, type TierLike } from "@/lib/pricing";
+import { resolveMediaUrl } from "@/lib/media-url";
 
 export type PackageCardData = {
   id: string;
@@ -25,7 +26,8 @@ export type PackageCardData = {
 export function PackageCard({ pkg }: { pkg: PackageCardData }) {
   const price = computePackagePrice(pkg.components, pkg.discount_type, pkg.discount_value);
   const ratings = rollupRatings(pkg.components);
-  const image = pkg.cover_image ?? pkg.components.find((c) => c.listing_media?.length)?.listing_media?.[0]?.storage_path;
+  const rawImage = pkg.cover_image ?? pkg.components.find((c) => c.listing_media?.length)?.listing_media?.[0]?.storage_path;
+  const image = resolveMediaUrl(rawImage);
 
   return (
     <Link

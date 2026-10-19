@@ -13,6 +13,7 @@ import {
   tierCount,
   unitLabel,
 } from "@/lib/pricing";
+import { resolveMediaUrl } from "@/lib/media-url";
 
 export const Route = createFileRoute("/packages/$slug")({
   component: PackageDetail,
@@ -60,9 +61,10 @@ function PackageDetail() {
   const price = computePackagePrice(components, pkg.discount_type, pkg.discount_value);
   const ratings = rollupRatings(components);
 
-  const gallery: string[] = pkg.cover_image
+  const rawGallery: string[] = pkg.cover_image
     ? [pkg.cover_image]
     : components.flatMap((c: any) => (c.listing_media ?? []).map((m: any) => m.storage_path));
+  const gallery: string[] = rawGallery.map(resolveMediaUrl).filter(Boolean) as string[];
   const [activeImage, setActiveImage] = useState(0);
 
   return (

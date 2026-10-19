@@ -33,6 +33,7 @@ import { useComparison, toggleComparisonId } from "@/hooks/useComparison";
 import { useModalScrollLock } from "@/hooks/useModalScrollLock";
 import { PackageCard } from "@/components/PackageCard";
 import { effectiveListingPrice, formatInr, unitLabel } from "@/lib/pricing";
+import { resolveMediaUrl } from "@/lib/media-url";
 
 
 export const Route = createFileRoute("/listing/$slug")({
@@ -251,7 +252,7 @@ function ListingPage() {
           {/* Gallery */}
           <div className="relative overflow-hidden rounded-2xl border border-border/60 bg-muted group">
             <img
-              src={images[activeImage]?.storage_path}
+              src={resolveMediaUrl(images[activeImage]?.storage_path) || ""}
               alt={listing.title}
               className="aspect-[16/10] w-full object-cover cursor-pointer transition-transform duration-300 group-hover:scale-[1.01]"
               onClick={() => setIsLightboxOpen(true)}
@@ -308,7 +309,7 @@ function ListingPage() {
                 onClick={() => setActiveImage(idx)}
                 className={`relative shrink-0 overflow-hidden rounded-xl border-2 ${activeImage === idx ? "border-primary" : "border-transparent"}`}
               >
-                <img src={img.storage_path} alt="" className="h-16 w-16 object-cover" />
+                <img src={resolveMediaUrl(img.storage_path) || ""} alt="" className="h-16 w-16 object-cover" />
               </button>
             ))}
           </div>
@@ -559,7 +560,7 @@ function ListingPage() {
             onClick={(e) => e.stopPropagation()}
           >
             <img
-              src={images[activeImage]?.storage_path}
+              src={resolveMediaUrl(images[activeImage]?.storage_path) || ""}
               alt={listing.title}
               className="max-h-[75vh] sm:max-h-[80vh] max-w-full object-contain rounded-xl shadow-2xl select-none"
             />
@@ -605,7 +606,7 @@ function ListingPage() {
                       : "border-transparent opacity-50 hover:opacity-100"
                   }`}
                 >
-                  <img src={img.storage_path} alt="" className="h-12 w-16 object-cover" />
+                  <img src={resolveMediaUrl(img.storage_path) || ""} alt="" className="h-12 w-16 object-cover" />
                 </button>
               ))}
             </div>
@@ -650,7 +651,7 @@ function ListingPage() {
             {/* Listing Preview Snippet */}
             <div className="p-3 bg-muted/40 rounded-2xl border border-border flex gap-3 items-center">
               <img
-                src={images[0]?.storage_path}
+                src={resolveMediaUrl(images[0]?.storage_path) || ""}
                 alt={listing.title}
                 className="w-16 h-16 rounded-xl object-cover shrink-0 shadow-2xs"
               />

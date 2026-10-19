@@ -5,6 +5,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { Heart, MapPin, Star, Users, Scale, Clock, ArrowRight } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { resolveMediaUrl } from "@/lib/media-url";
 import { effectiveListingPrice, formatInr, unitLabel, type TierLike } from "@/lib/pricing";
 import { toggleWishlist, getWishlist } from "@/lib/engagement.functions";
 import { toggleComparisonId } from "@/hooks/useComparison";
@@ -56,17 +57,6 @@ export interface ListingCardProps {
   onEnquire?: (listing: ListingCardData) => void;
 }
 
-function resolveListingMediaUrl(storagePathOrUrl: string | null | undefined): string | null {
-  if (!storagePathOrUrl) return null;
-  if (storagePathOrUrl.startsWith("http://") || storagePathOrUrl.startsWith("https://")) {
-    return storagePathOrUrl;
-  }
-  const bucket = "listing-media";
-  const cleanPath = storagePathOrUrl.startsWith(`${bucket}/`)
-    ? storagePathOrUrl.slice(bucket.length + 1)
-    : storagePathOrUrl;
-  return supabase.storage.from(bucket).getPublicUrl(cleanPath).data.publicUrl;
-}
 
 function getDaysAgoText(isoString: string | null | undefined): {
   text: string;
@@ -182,7 +172,7 @@ export function ListingCard({
   // Resolved fields
   const rawCoverPath = listing.coverImage || listing.listing_media?.[0]?.storage_path;
   const coverImage =
-    resolveListingMediaUrl(rawCoverPath) ||
+    resolveMediaUrl(rawCoverPath) ||
     "https://images.unsplash.com/photo-1519225421980-715cb0215aed?w=600&q=80";
 
   const categoryName = listing.categories?.name || listing.category || "Celebration Service";
