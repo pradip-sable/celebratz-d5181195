@@ -366,9 +366,12 @@ export const getVendorLeads = createServerFn({ method: "GET" })
 
     const { data: leads, error } = await context.supabase
       .from("requests")
-      .select("*, listing:listings(id, title, slug), package:packages(name), tier:listing_tiers(name)")
+      .select(
+        "*, listing:listings(id, title, slug), package:packages(name), tier:listing_tiers(name), request_messages(id, sender_id, body, created_at)"
+      )
       .eq("vendor_id", vendor.id)
-      .order("created_at", { ascending: false });
+      .order("created_at", { ascending: false })
+      .order("created_at", { foreignTable: "request_messages", ascending: true });
     if (error) throw error;
 
     const customerIds = [...new Set((leads ?? []).map((l) => l.customer_id).filter(Boolean))] as string[];

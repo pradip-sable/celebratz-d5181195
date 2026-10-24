@@ -10,6 +10,7 @@ const requestSchema = z
     packageId: z.string().uuid().optional(),
     selectedTierId: z.string().uuid().optional(),
     kind: z.enum(["booking_request", "enquiry"]),
+    eventType: z.enum(["Wedding", "Reception", "Birthday", "Engagement", "Naming Ceremony", "Corporate"]).optional(),
     eventDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/), // YYYY-MM-DD
     visitDate: z.string().optional(),
     visitTime: z.string().optional(),
@@ -48,6 +49,7 @@ function buildRow(
     vendor_id: target.vendorId,
     customer_id: customerId,
     kind: data.kind,
+    event_type: data.eventType ?? null,
     event_date: data.eventDate,
     visit_date: data.visitDate || null,
     visit_time: data.visitTime || null,

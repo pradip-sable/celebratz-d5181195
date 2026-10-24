@@ -178,6 +178,7 @@ export function ListingPhotoUploader({
   const handleSetCover = (idx: number) => {
     if (idx === 0 || idx >= value.length) return;
     const item = value[idx];
+    if (!item) return;
     const next = [item, ...value.filter((_, i) => i !== idx)];
     onChange(next);
   };
