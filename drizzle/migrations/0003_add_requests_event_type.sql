@@ -1,0 +1,1 @@
+ALTER TABLE public.requests ADD COLUMN event_type text;

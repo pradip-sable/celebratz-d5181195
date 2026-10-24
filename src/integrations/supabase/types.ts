@@ -659,6 +659,7 @@ export type Database = {
           created_at: string
           customer_id: string | null
           event_date: string | null
+          event_type: string | null
           guest_count: number | null
           id: string
           kind: Database["public"]["Enums"]["request_kind"]
@@ -678,6 +679,7 @@ export type Database = {
           created_at?: string
           customer_id?: string | null
           event_date?: string | null
+          event_type?: string | null
           guest_count?: number | null
           id?: string
           kind: Database["public"]["Enums"]["request_kind"]
@@ -697,6 +699,7 @@ export type Database = {
           created_at?: string
           customer_id?: string | null
           event_date?: string | null
+          event_type?: string | null
           guest_count?: number | null
           id?: string
           kind?: Database["public"]["Enums"]["request_kind"]
