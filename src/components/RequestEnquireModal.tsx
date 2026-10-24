@@ -447,6 +447,7 @@ export const RequestEnquireModal: React.FC<RequestEnquireModalProps> = ({
           packageId: finalPackageId,
           selectedTierId: finalTierId,
           kind: requestType === "request_to_book" ? "booking_request" : "enquiry",
+          eventType: (eventType as any) || undefined,
           eventDate,
           visitDate: preferredVisitDate || undefined,
           visitTime: preferredVisitTimeSlot || undefined,
