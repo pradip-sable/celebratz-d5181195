@@ -21,13 +21,15 @@ export const getMyRequests = createServerFn({ method: "GET" })
       .from("requests")
       .select(`
         *,
-        listing:listings(id, title, slug, category:categories(name)),
+        listing:listings(id, title, slug, category:categories(name), listing_media(storage_path, position)),
         package:packages(name),
-        tier:listing_tiers(name)
+        tier:listing_tiers(name),
+        request_messages(id, sender_id, body, created_at)
       `)
 
       .eq("customer_id", context.userId)
-      .order("created_at", { ascending: false });
+      .order("created_at", { ascending: false })
+      .order("created_at", { foreignTable: "request_messages", ascending: true });
     if (error) throw error;
     return data ?? [];
   });
@@ -55,11 +57,13 @@ export const getVendorDashboard = createServerFn({ method: "GET" })
         *,
         listing:listings(id, title, slug),
         package:packages(name),
-        tier:listing_tiers(name)
+        tier:listing_tiers(name),
+        request_messages(id, sender_id, body, created_at)
       `)
 
       .eq("vendor_id", vendor?.id ?? "00000000-0000-0000-0000-000000000000")
-      .order("created_at", { ascending: false });
+      .order("created_at", { ascending: false })
+      .order("created_at", { foreignTable: "request_messages", ascending: true });
     if (leadsError) throw leadsError;
 
     return { vendor, listings: listings ?? [], leads: leads ?? [] };
@@ -67,7 +71,15 @@ export const getVendorDashboard = createServerFn({ method: "GET" })
 
 export const updateRequestStatus = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data) => z.object({ requestId: z.string().uuid(), status: z.enum(["accepted", "declined"]) }).parse(data))
+  .inputValidator((data) =>
+    z
+      .object({
+        requestId: z.string().uuid(),
+        status: z.enum(["accepted", "declined"]),
+        note: z.string().trim().min(1).max(500).optional(),
+      })
+      .parse(data)
+  )
   .handler(async ({ context, data }) => {
     const { data: vendor } = await context.supabase.from("vendors").select("id").eq("owner_id", context.userId).single();
     if (!vendor) throw new Error("Vendor not found");
@@ -76,6 +88,26 @@ export const updateRequestStatus = createServerFn({ method: "POST" })
       .update({ status: data.status })
       .eq("id", data.requestId)
       .eq("vendor_id", vendor.id);
+    if (error) throw error;
+
+    if (data.note) {
+      const { error: noteError } = await context.supabase
+        .from("request_messages")
+        .insert({ request_id: data.requestId, sender_id: context.userId, body: data.note });
+      if (noteError) throw noteError;
+    }
+    return { ok: true };
+  });
+
+export const sendRequestMessage = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data) =>
+    z.object({ requestId: z.string().uuid(), body: z.string().trim().min(1).max(1000) }).parse(data)
+  )
+  .handler(async ({ context, data }) => {
+    const { error } = await context.supabase
+      .from("request_messages")
+      .insert({ request_id: data.requestId, sender_id: context.userId, body: data.body });
     if (error) throw error;
     return { ok: true };
   });
