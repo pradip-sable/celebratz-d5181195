@@ -98,6 +98,25 @@ const EVENT_TYPES = [
   "Corporate Event",
 ] as const;
 
+export type EventTypeOption = (typeof EVENT_TYPES)[number];
+
+export type RequestSchemaEventType =
+  | "Wedding"
+  | "Reception"
+  | "Birthday"
+  | "Engagement"
+  | "Naming Ceremony"
+  | "Corporate";
+
+export const EVENT_TYPE_MAP: Record<EventTypeOption, RequestSchemaEventType> = {
+  "Wedding": "Wedding",
+  "Reception": "Reception",
+  "Birthday": "Birthday",
+  "Engagement": "Engagement",
+  "Naming Ceremony": "Naming Ceremony",
+  "Corporate Event": "Corporate",
+};
+
 export const RequestEnquireModal: React.FC<RequestEnquireModalProps> = ({
   isOpen,
   onClose,
@@ -161,7 +180,7 @@ export const RequestEnquireModal: React.FC<RequestEnquireModalProps> = ({
   const [requestType, setRequestType] = useState<"request_to_book" | "general_enquiry">(
     initialKind === "booking_request" ? "request_to_book" : "general_enquiry",
   );
-  const [eventType, setEventType] = useState<string>("Wedding");
+  const [eventType, setEventType] = useState<EventTypeOption>("Wedding");
   const [eventDate, setEventDate] = useState<string>("");
   const [guestCount, setGuestCount] = useState<number | "">("");
   const [preferredVisitDate, setPreferredVisitDate] = useState<string>("");
@@ -441,13 +460,14 @@ export const RequestEnquireModal: React.FC<RequestEnquireModalProps> = ({
     setIsSubmitting(true);
     try {
       const send = signedIn ? sendUserRequest : sendGuestRequest;
+      const mappedEventType: RequestSchemaEventType = EVENT_TYPE_MAP[eventType];
       await send({
         data: {
           listingId: finalListingId,
           packageId: finalPackageId,
           selectedTierId: finalTierId,
           kind: requestType === "request_to_book" ? "booking_request" : "enquiry",
-          eventType: (eventType as any) || undefined,
+          eventType: mappedEventType,
           eventDate,
           visitDate: preferredVisitDate || undefined,
           visitTime: preferredVisitTimeSlot || undefined,
@@ -1008,7 +1028,7 @@ export const RequestEnquireModal: React.FC<RequestEnquireModalProps> = ({
                 <select
                   id="enquiry-event-type"
                   value={eventType}
-                  onChange={(e) => setEventType(e.target.value)}
+                  onChange={(e) => setEventType(e.target.value as EventTypeOption)}
                   className="w-full bg-muted/40 border border-border rounded-xl p-2.5 text-xs text-foreground font-medium focus:border-primary outline-hidden cursor-pointer"
                 >
                   {EVENT_TYPES.map((type) => (

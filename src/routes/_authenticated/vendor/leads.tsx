@@ -51,7 +51,7 @@ function VendorLeads() {
   const { data, isLoading } = useQuery({ queryKey: ["vendor-leads"], queryFn: () => fetchLeads() });
 
   const statusMutation = useMutation({
-    mutationFn: (vars: { requestId: string; status: "accepted" | "declined" | "closed"; note?: string }) =>
+    mutationFn: (vars: { requestId: string; status: "accepted" | "declined" | "closed"; note?: string | undefined }) =>
       setStatus({ data: vars }),
     onSuccess: () => {
       toast.success("Lead updated");
