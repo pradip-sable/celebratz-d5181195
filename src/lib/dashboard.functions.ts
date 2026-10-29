@@ -46,7 +46,7 @@ export const getVendorDashboard = createServerFn({ method: "GET" })
 
     const { data: listings, error: listingsError } = await context.supabase
       .from("listings")
-      .select("id, title, slug, status, price_from, price_unit, rating_avg, review_count, category:categories(name)")
+      .select("id, title, slug, status, price_from, price_unit, rating_avg, review_count, availability_updated_at, category:categories(name), areas(name), listing_media(storage_path, position)")
       .eq("vendor_id", vendor?.id ?? "00000000-0000-0000-0000-000000000000")
       .order("created_at", { ascending: false });
     if (listingsError) throw listingsError;
