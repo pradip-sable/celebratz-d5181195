@@ -58,7 +58,7 @@ export interface ListingCardProps {
 }
 
 
-function getDaysAgoText(isoString: string | null | undefined): {
+export function getDaysAgoText(isoString: string | null | undefined): {
   text: string;
   isStale: boolean;
 } {

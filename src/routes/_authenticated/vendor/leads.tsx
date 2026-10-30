@@ -7,6 +7,7 @@ import { getVendorLeads } from "@/lib/vendor.functions";
 import { updateRequestStatus, sendRequestMessage } from "@/lib/dashboard.functions";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { VendorShell } from "@/components/VendorShell";
 import {
   Loader2,
   Phone,
@@ -95,47 +96,51 @@ function VendorLeads() {
   const leads = data.leads.filter((l: any) => filter === "all" || l.status === filter);
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-8 pb-24 md:py-12">
-      <h1 className="font-serif text-2xl font-semibold">Leads & enquiries</h1>
-      <p className="mt-2 text-sm text-muted-foreground">
-        Accept a lead to unlock the review request after the event date, or decline to keep your pipeline clean.
-      </p>
+    <VendorShell>
+      <div className="space-y-4">
+        <div>
+          <h2 className="font-serif font-bold text-xl text-foreground">Leads & enquiries</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Accept a lead to unlock the review request after the event date, or decline to keep your pipeline clean.
+          </p>
+        </div>
 
-      <div className="mt-5 flex flex-wrap gap-2">
-        {FILTERS.map((f) => (
-          <button
-            key={f.value}
-            onClick={() => setFilter(f.value)}
-            className={`rounded-full border px-3 py-1.5 text-sm transition-colors cursor-pointer ${
-              filter === f.value ? "border-primary bg-primary/10 text-primary font-semibold" : "border-border/60 text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            {f.label}
-          </button>
-        ))}
-      </div>
-
-      {leads.length === 0 ? (
-        <p className="mt-10 text-center text-sm text-muted-foreground">No leads in this view yet.</p>
-      ) : (
-        <div className="mt-6 space-y-4">
-          {leads.map((lead: any) => (
-            <VendorLeadCard
-              key={lead.id}
-              lead={lead}
-              onUpdateStatus={(status, note) =>
-                statusMutation.mutate({ requestId: lead.id, status, note: note || undefined })
-              }
-              onSendReply={(body, reset) =>
-                replyMutation.mutate({ requestId: lead.id, body }, { onSuccess: reset })
-              }
-              isUpdating={statusMutation.isPending}
-              isReplying={replyMutation.isPending}
-            />
+        <div className="flex flex-wrap gap-2">
+          {FILTERS.map((f) => (
+            <button
+              key={f.value}
+              onClick={() => setFilter(f.value)}
+              className={`rounded-full border px-3 py-1.5 text-sm transition-colors cursor-pointer ${
+                filter === f.value ? "border-primary bg-primary/10 text-primary font-semibold" : "border-border/60 text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              {f.label}
+            </button>
           ))}
         </div>
-      )}
-    </div>
+
+        {leads.length === 0 ? (
+          <p className="mt-10 text-center text-sm text-muted-foreground">No leads in this view yet.</p>
+        ) : (
+          <div className="space-y-4">
+            {leads.map((lead: any) => (
+              <VendorLeadCard
+                key={lead.id}
+                lead={lead}
+                onUpdateStatus={(status, note) =>
+                  statusMutation.mutate({ requestId: lead.id, status, note: note || undefined })
+                }
+                onSendReply={(body, reset) =>
+                  replyMutation.mutate({ requestId: lead.id, body }, { onSuccess: reset })
+                }
+                isUpdating={statusMutation.isPending}
+                isReplying={replyMutation.isPending}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+    </VendorShell>
   );
 }
 

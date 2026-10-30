@@ -35,6 +35,7 @@ import { Route as AuthenticatedVendorIndexRouteImport } from './routes/_authenti
 import { Route as AuthenticatedVendorLeadsRouteImport } from './routes/_authenticated/vendor/leads'
 import { Route as AuthenticatedVendorProfileRouteImport } from './routes/_authenticated/vendor/profile'
 import { Route as AuthenticatedVendorCalendarListingIdRouteImport } from './routes/_authenticated/vendor/calendar.$listingId'
+import { Route as AuthenticatedVendorListingsIndexRouteImport } from './routes/_authenticated/vendor/listings.index'
 import { Route as AuthenticatedVendorListingsNewRouteImport } from './routes/_authenticated/vendor/listings.new'
 import { Route as AuthenticatedVendorPackagesIndexRouteImport } from './routes/_authenticated/vendor/packages.index'
 import { Route as AuthenticatedVendorPackagesNewRouteImport } from './routes/_authenticated/vendor/packages.new'
@@ -175,6 +176,12 @@ const AuthenticatedVendorCalendarListingIdRoute =
     path: '/vendor/calendar/$listingId',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedVendorListingsIndexRoute =
+  AuthenticatedVendorListingsIndexRouteImport.update({
+    id: '/vendor/listings/',
+    path: '/vendor/listings/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedVendorListingsNewRoute =
   AuthenticatedVendorListingsNewRouteImport.update({
     id: '/vendor/listings/new',
@@ -234,6 +241,7 @@ export interface FileRoutesByFullPath {
   '/vendor/calendar/$listingId': typeof AuthenticatedVendorCalendarListingIdRoute
   '/vendor/listings/new': typeof AuthenticatedVendorListingsNewRoute
   '/vendor/packages/new': typeof AuthenticatedVendorPackagesNewRoute
+  '/vendor/listings/': typeof AuthenticatedVendorListingsIndexRoute
   '/vendor/packages/': typeof AuthenticatedVendorPackagesIndexRoute
   '/vendor/listings/$listingId/edit': typeof AuthenticatedVendorListingsListingIdEditRoute
   '/vendor/packages/$id/edit': typeof AuthenticatedVendorPackagesIdEditRoute
@@ -265,6 +273,7 @@ export interface FileRoutesByTo {
   '/vendor/calendar/$listingId': typeof AuthenticatedVendorCalendarListingIdRoute
   '/vendor/listings/new': typeof AuthenticatedVendorListingsNewRoute
   '/vendor/packages/new': typeof AuthenticatedVendorPackagesNewRoute
+  '/vendor/listings': typeof AuthenticatedVendorListingsIndexRoute
   '/vendor/packages': typeof AuthenticatedVendorPackagesIndexRoute
   '/vendor/listings/$listingId/edit': typeof AuthenticatedVendorListingsListingIdEditRoute
   '/vendor/packages/$id/edit': typeof AuthenticatedVendorPackagesIdEditRoute
@@ -299,6 +308,7 @@ export interface FileRoutesById {
   '/_authenticated/vendor/calendar/$listingId': typeof AuthenticatedVendorCalendarListingIdRoute
   '/_authenticated/vendor/listings/new': typeof AuthenticatedVendorListingsNewRoute
   '/_authenticated/vendor/packages/new': typeof AuthenticatedVendorPackagesNewRoute
+  '/_authenticated/vendor/listings/': typeof AuthenticatedVendorListingsIndexRoute
   '/_authenticated/vendor/packages/': typeof AuthenticatedVendorPackagesIndexRoute
   '/_authenticated/vendor/listings/$listingId/edit': typeof AuthenticatedVendorListingsListingIdEditRoute
   '/_authenticated/vendor/packages/$id/edit': typeof AuthenticatedVendorPackagesIdEditRoute
@@ -333,6 +343,7 @@ export interface FileRouteTypes {
     | '/vendor/calendar/$listingId'
     | '/vendor/listings/new'
     | '/vendor/packages/new'
+    | '/vendor/listings/'
     | '/vendor/packages/'
     | '/vendor/listings/$listingId/edit'
     | '/vendor/packages/$id/edit'
@@ -364,6 +375,7 @@ export interface FileRouteTypes {
     | '/vendor/calendar/$listingId'
     | '/vendor/listings/new'
     | '/vendor/packages/new'
+    | '/vendor/listings'
     | '/vendor/packages'
     | '/vendor/listings/$listingId/edit'
     | '/vendor/packages/$id/edit'
@@ -397,6 +409,7 @@ export interface FileRouteTypes {
     | '/_authenticated/vendor/calendar/$listingId'
     | '/_authenticated/vendor/listings/new'
     | '/_authenticated/vendor/packages/new'
+    | '/_authenticated/vendor/listings/'
     | '/_authenticated/vendor/packages/'
     | '/_authenticated/vendor/listings/$listingId/edit'
     | '/_authenticated/vendor/packages/$id/edit'
@@ -604,6 +617,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedVendorCalendarListingIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/vendor/listings/': {
+      id: '/_authenticated/vendor/listings/'
+      path: '/vendor/listings'
+      fullPath: '/vendor/listings/'
+      preLoaderRoute: typeof AuthenticatedVendorListingsIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/vendor/listings/new': {
       id: '/_authenticated/vendor/listings/new'
       path: '/vendor/listings/new'
@@ -654,6 +674,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedVendorCalendarListingIdRoute: typeof AuthenticatedVendorCalendarListingIdRoute
   AuthenticatedVendorListingsNewRoute: typeof AuthenticatedVendorListingsNewRoute
   AuthenticatedVendorPackagesNewRoute: typeof AuthenticatedVendorPackagesNewRoute
+  AuthenticatedVendorListingsIndexRoute: typeof AuthenticatedVendorListingsIndexRoute
   AuthenticatedVendorPackagesIndexRoute: typeof AuthenticatedVendorPackagesIndexRoute
   AuthenticatedVendorListingsListingIdEditRoute: typeof AuthenticatedVendorListingsListingIdEditRoute
   AuthenticatedVendorPackagesIdEditRoute: typeof AuthenticatedVendorPackagesIdEditRoute
@@ -672,6 +693,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
     AuthenticatedVendorCalendarListingIdRoute,
   AuthenticatedVendorListingsNewRoute: AuthenticatedVendorListingsNewRoute,
   AuthenticatedVendorPackagesNewRoute: AuthenticatedVendorPackagesNewRoute,
+  AuthenticatedVendorListingsIndexRoute: AuthenticatedVendorListingsIndexRoute,
   AuthenticatedVendorPackagesIndexRoute: AuthenticatedVendorPackagesIndexRoute,
   AuthenticatedVendorListingsListingIdEditRoute:
     AuthenticatedVendorListingsListingIdEditRoute,

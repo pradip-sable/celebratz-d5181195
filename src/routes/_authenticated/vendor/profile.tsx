@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import { VendorShell } from "@/components/VendorShell";
 import { Loader2 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/vendor/profile")({
@@ -83,14 +84,15 @@ function VendorProfile() {
   }
 
   return (
-    <div className="mx-auto max-w-2xl px-4 py-8 pb-24 md:py-12">
-      <div className="flex items-center gap-3">
-        <h1 className="font-serif text-2xl font-semibold">Business profile</h1>
-        {vendor?.status && <Badge variant={vendor.status === "approved" ? "default" : "outline"}>{vendor.status}</Badge>}
-      </div>
-      <p className="mt-2 text-sm text-muted-foreground">
-        These details are shown to customers and used when we share leads with you.
-      </p>
+    <VendorShell>
+      <div className="bg-card rounded-2xl border border-border p-6 shadow-2xs space-y-4">
+        <div className="flex items-center gap-3">
+          <h2 className="font-serif text-2xl font-semibold">Business profile</h2>
+          {vendor?.status && <Badge variant={vendor.status === "approved" ? "default" : "outline"}>{vendor.status}</Badge>}
+        </div>
+        <p className="mt-1 text-sm text-muted-foreground">
+          These details are shown to customers and used when we share leads with you.
+        </p>
 
       <form
         className="mt-6 space-y-5"
@@ -169,5 +171,6 @@ function VendorProfile() {
         </Button>
       </form>
     </div>
+    </VendorShell>
   );
 }

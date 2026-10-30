@@ -14,6 +14,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Loader2 } from "lucide-react";
 import { TierEditor, type TierDraft, tiersToPayload } from "@/components/TierEditor";
 import { ListingPhotoUploader, type MediaItem } from "@/components/ListingPhotoUploader";
+import { VendorShell } from "@/components/VendorShell";
 
 export const Route = createFileRoute("/_authenticated/vendor/listings/new")({
   component: NewListing,
@@ -51,6 +52,7 @@ function NewListing() {
     price_from: "",
     price_unit: "per_event",
     address: "",
+    google_maps_url: "",
   });
   const [attributes, setAttributes] = useState<Record<string, unknown>>({});
   const [eventTypeIds, setEventTypeIds] = useState<string[]>([]);
@@ -84,6 +86,7 @@ function NewListing() {
 
   const mutation = useMutation({
     mutationFn: async () => {
+      const gMaps = form.google_maps_url.trim();
       const res = await create({
         data: {
           title: form.title,
@@ -93,6 +96,7 @@ function NewListing() {
           price_from: hasTiers ? (lowestTierPrice ?? Number(form.price_from) ?? 0) : form.price_from,
           price_unit: form.price_unit as any,
           address: form.address || undefined,
+          google_maps_url: gMaps || undefined,
           attributes,
           event_type_ids: eventTypeIds,
           tiers: tiersToPayload(tiers),
@@ -135,92 +139,121 @@ function NewListing() {
   }
 
   return (
-    <div className="mx-auto max-w-2xl px-4 py-8 pb-24 md:py-12">
-      <h1 className="font-serif text-2xl font-semibold">Add a listing</h1>
-      <p className="mt-2 text-sm text-muted-foreground">
-        Pick a category and the form adapts to the details couples and planners look for.
-      </p>
+    <VendorShell>
+      <div className="bg-card rounded-2xl border border-border p-6 shadow-2xs space-y-4">
+        <div>
+          <h2 className="font-serif text-2xl font-semibold">Add a listing</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Pick a category and the form adapts to the details couples and planners look for.
+          </p>
+        </div>
 
-      <form
-        className="mt-6 space-y-5"
-        onSubmit={(e) => {
-          e.preventDefault();
-          if (photos.length === 0) {
-            setPhotoError("Please add at least one photo before submitting.");
-            toast.error("Please add at least one photo");
-            return;
-          }
-          if (!eventTypeIds.length) {
-            toast.error("Select at least one event type");
-            return;
-          }
-          if (tiers.length === 1) {
-            toast.error("Package Tiers need at least 2 tiers — or remove the tier to keep flat pricing");
-            return;
-          }
-          if (hasTiers) {
-            for (const [i, t] of tiers.entries()) {
-              if (!t.name.trim()) {
-                toast.error(`Tier ${i + 1} needs a name`);
-                return;
-              }
-              if (!t.price || isNaN(Number(t.price)) || Number(t.price) < 0) {
-                toast.error(`Tier ${i + 1} needs a valid price`);
-                return;
+        <form
+          className="mt-6 space-y-5"
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (photos.length === 0) {
+              setPhotoError("Please add at least one photo before submitting.");
+              toast.error("Please add at least one photo");
+              return;
+            }
+            if (!eventTypeIds.length) {
+              toast.error("Select at least one event type");
+              return;
+            }
+            if (tiers.length === 1) {
+              toast.error("Package Tiers need at least 2 tiers — or remove the tier to keep flat pricing");
+              return;
+            }
+            if (hasTiers) {
+              for (const [i, t] of tiers.entries()) {
+                if (!t.name.trim()) {
+                  toast.error(`Tier ${i + 1} needs a name`);
+                  return;
+                }
+                if (!t.price || isNaN(Number(t.price)) || Number(t.price) < 0) {
+                  toast.error(`Tier ${i + 1} needs a valid price`);
+                  return;
+                }
               }
             }
-          }
-          mutation.mutate();
-        }}
-      >
-        <div>
-          <Label htmlFor="category">Category</Label>
-          <select
-            id="category"
-            required
-            className="mt-1 h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
-            value={form.category_id}
-            onChange={(e) => {
-              setForm({ ...form, category_id: e.target.value });
-              setAttributes({});
-            }}
-          >
-            <option value="">Select a category</option>
-            {(options?.categories ?? []).map((c: any) => (
-              <option key={c.id} value={c.id}>
-                {c.name}
-              </option>
-            ))}
-          </select>
-        </div>
+            if (form.google_maps_url.trim() && !form.google_maps_url.trim().startsWith("https://")) {
+              toast.error("Google Maps link must be a valid https:// URL");
+              return;
+            }
+            mutation.mutate();
+          }}
+        >
+          <div>
+            <Label htmlFor="category">Category</Label>
+            <select
+              id="category"
+              required
+              className="mt-1 h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+              value={form.category_id}
+              onChange={(e) => {
+                setForm({ ...form, category_id: e.target.value });
+                setAttributes({});
+              }}
+            >
+              <option value="">Select a category</option>
+              {(options?.categories ?? []).map((c: any) => (
+                <option key={c.id} value={c.id}>
+                  {c.name}
+                </option>
+              ))}
+            </select>
+          </div>
 
-        <div>
-          <Label htmlFor="title">Listing title</Label>
-          <Input id="title" required value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
-        </div>
+          <div>
+            <Label htmlFor="title">Listing title</Label>
+            <Input id="title" required value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
+          </div>
 
-        <div>
-          <Label htmlFor="area">Area in Pune</Label>
-          <select
-            id="area"
-            required
-            className="mt-1 h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
-            value={form.area_id}
-            onChange={(e) => setForm({ ...form, area_id: e.target.value })}
-          >
-            <option value="">Select an area</option>
-            {(options?.areas ?? []).map((a: any) => (
-              <option key={a.id} value={a.id}>
-                {a.name}
-              </option>
-            ))}
-          </select>
-        </div>
+          <div>
+            <Label htmlFor="area">Area in Pune</Label>
+            <select
+              id="area"
+              required
+              className="mt-1 h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+              value={form.area_id}
+              onChange={(e) => setForm({ ...form, area_id: e.target.value })}
+            >
+              <option value="">Select an area</option>
+              {(options?.areas ?? []).map((a: any) => (
+                <option key={a.id} value={a.id}>
+                  {a.name}
+                </option>
+              ))}
+            </select>
+          </div>
 
-        <div>
-          <Label htmlFor="address">Address (optional)</Label>
-          <Input id="address" value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} />
-        </div>
+          {/* Full Address & Google Maps Link */}
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div>
+              <Label htmlFor="address">Address (optional)</Label>
+              <Input
+                id="address"
+                placeholder="e.g. Survey No. 42/1, Pancard Club Road, Baner"
+                value={form.address}
+                onChange={(e) => setForm({ ...form, address: e.target.value })}
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="google_maps_url">Google Maps link / share URL (optional)</Label>
+              <Input
+                id="google_maps_url"
+                type="url"
+                placeholder="e.g. https://maps.app.goo.gl/... or https://goo.gl/maps/..."
+                value={form.google_maps_url}
+                onChange={(e) => setForm({ ...form, google_maps_url: e.target.value })}
+              />
+              <span className="text-[10px] text-muted-foreground mt-1 block">
+                Paste Google Maps location link to enable 1-tap navigation
+              </span>
+            </div>
+          </div>
 
         <div className="grid gap-4 sm:grid-cols-2">
           <div>
@@ -322,6 +355,7 @@ function NewListing() {
         </Button>
       </form>
     </div>
+    </VendorShell>
   );
 }
 

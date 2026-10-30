@@ -8,6 +8,7 @@ import {
 } from "@/lib/packages.functions";
 import { computePackagePrice, effectiveListingPrice, formatInr } from "@/lib/pricing";
 import { Button } from "@/components/ui/button";
+import { VendorShell } from "@/components/VendorShell";
 import {
   Layers,
   Plus,
@@ -78,20 +79,12 @@ function VendorPackagesIndex() {
   const pausedCount = packages.filter((p: any) => p.status === "paused").length;
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-8 pb-24 md:py-12">
-      {/* Breadcrumb Back Link */}
-      <Link
-        to="/vendor"
-        className="inline-flex items-center gap-1.5 text-xs font-semibold text-muted-foreground transition-colors hover:text-foreground mb-4"
-      >
-        <ArrowLeft className="h-4 w-4" />
-        <span>Vendor dashboard</span>
-      </Link>
-
-      {/* Header Row */}
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <h1 className="font-serif text-2xl font-bold">My Packages</h1>
+    <VendorShell>
+      <div className="space-y-6">
+        {/* Header Row */}
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <h2 className="font-serif text-2xl font-bold">My Packages</h2>
           <p className="mt-1 text-sm text-muted-foreground">
             Multi-service bundles offering seamless celebration solutions across Pune.
           </p>
@@ -297,7 +290,8 @@ function VendorPackagesIndex() {
           </div>
         )}
       </section>
-    </div>
+      </div>
+    </VendorShell>
   );
 }
 

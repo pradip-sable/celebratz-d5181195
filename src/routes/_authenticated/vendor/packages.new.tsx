@@ -4,6 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { getMyPackages, createPackage } from "@/lib/packages.functions";
 import { PackageForm } from "@/components/PackageForm";
+import { VendorShell } from "@/components/VendorShell";
 import { Loader2 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/vendor/packages/new")({
@@ -70,14 +71,16 @@ function NewPackageRoute() {
   }
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-8 pb-24 md:py-12">
-      <PackageForm
-        liveListings={data?.liveListings ?? []}
-        isSubmitting={mutation.isPending}
-        onSubmit={async (values) => {
-          await mutation.mutateAsync(values);
-        }}
-      />
-    </div>
+    <VendorShell>
+      <div className="bg-card rounded-2xl border border-border p-6 shadow-2xs">
+        <PackageForm
+          liveListings={data?.liveListings ?? []}
+          isSubmitting={mutation.isPending}
+          onSubmit={async (values) => {
+            await mutation.mutateAsync(values);
+          }}
+        />
+      </div>
+    </VendorShell>
   );
 }

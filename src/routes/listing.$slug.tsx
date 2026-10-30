@@ -23,6 +23,7 @@ import {
   Send,
   Globe,
   X,
+  ExternalLink,
 } from "lucide-react";
 import { format, differenceInDays, addDays } from "date-fns";
 import { toast } from "sonner";
@@ -320,8 +321,23 @@ function ListingPage() {
               <div>
                 <span className="text-sm font-medium text-primary">{listing.categories?.name}</span>
                 <h1 className="font-serif text-2xl font-semibold md:text-3xl">{listing.title}</h1>
-                <p className="mt-1 flex items-center gap-1 text-sm text-muted-foreground">
-                  <MapPin className="h-4 w-4" /> {listing.areas?.name}, {listing.address}
+                <p className="mt-1 flex items-center gap-1 text-sm text-muted-foreground flex-wrap">
+                  <MapPin className="h-4 w-4 shrink-0" />
+                  <span>
+                    {listing.areas?.name}
+                    {listing.address ? `, ${listing.address}` : ""}
+                  </span>
+                  {listing.google_maps_url && (
+                    <a
+                      href={listing.google_maps_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 font-semibold text-primary hover:underline text-xs ml-2 cursor-pointer"
+                    >
+                      <span>Get Directions</span>
+                      <ExternalLink className="w-3.5 h-3.5" />
+                    </a>
+                  )}
                 </p>
               </div>
               {listing.rating_avg ? (
