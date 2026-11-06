@@ -29,6 +29,13 @@
       "when": 1792832311855,
       "tag": "0003_add_requests_event_type",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1793971161017,
+      "tag": "0004_guard_vendor_listing_package_moderation_fields",
+      "breakpoints": true
     }
   ]
 }
