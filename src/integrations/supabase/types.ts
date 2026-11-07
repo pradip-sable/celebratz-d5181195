@@ -974,6 +974,14 @@ export type Database = {
       }
     }
     Functions: {
+      get_vendor_contact_for_request: {
+        Args: { _request_id: string }
+        Returns: {
+          business_name: string
+          contact_email: string
+          contact_phone: string
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
