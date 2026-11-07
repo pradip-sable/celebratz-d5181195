@@ -36,6 +36,13 @@
       "when": 1793971161017,
       "tag": "0004_guard_vendor_listing_package_moderation_fields",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1794031535526,
+      "tag": "0005_gate_vendor_contact_by_accepted_request",
+      "breakpoints": true
     }
   ]
 }
