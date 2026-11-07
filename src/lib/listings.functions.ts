@@ -189,7 +189,13 @@ export const getListingBySlug = createServerFn({ method: "GET" })
     }));
 
     return {
-      listing: { ...listing, effective_price: effectiveListingPrice(listing as never) },
+      listing: {
+        ...listing,
+        vendors: listing.vendors
+          ? { ...listing.vendors, contact_phone: undefined, contact_email: undefined }
+          : listing.vendors,
+        effective_price: effectiveListingPrice(listing as never),
+      },
       availability: availability ?? [],
       reviews: reviewsWithNames,
     };
