@@ -57,7 +57,7 @@ export const getPackageBySlug = createServerFn({ method: "GET" })
       .from("packages")
       .select(
         `id, name, slug, description, cover_image, discount_type, discount_value, created_at,
-         vendor:vendors(id, business_name, about, contact_phone, contact_email),
+         vendor:vendors(id, business_name, about),
          package_listings(${COMPONENT_SELECT})`,
       )
       .eq("slug", data.slug)

@@ -139,7 +139,7 @@ export const getListingBySlug = createServerFn({ method: "GET" })
         *,
         categories(name, slug),
         areas(name, slug),
-        vendors(id, business_name, about, contact_phone, contact_email),
+        vendors(id, business_name, about),
         listing_attributes(field_key, value),
         listing_media(storage_path, type, position, alt_text),
         listing_tiers(id, name, description, price, features, sort_order, is_active),

@@ -34,6 +34,25 @@ export const getMyRequests = createServerFn({ method: "GET" })
     return data ?? [];
   });
 
+export const getVendorContactForRequest = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data) => z.object({ requestId: z.string().uuid() }).parse(data))
+  .handler(async ({ context, data }) => {
+    const { data: contacts, error } = await context.supabase.rpc("get_vendor_contact_for_request", {
+      _request_id: data.requestId,
+    });
+    if (error) throw error;
+
+    const contact = contacts?.[0];
+    if (!contact) return null;
+
+    return {
+      businessName: contact.business_name,
+      phone: contact.contact_phone,
+      email: contact.contact_email,
+    };
+  });
+
 export const getVendorDashboard = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
