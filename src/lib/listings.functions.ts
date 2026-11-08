@@ -191,9 +191,12 @@ export const getListingBySlug = createServerFn({ method: "GET" })
     return {
       listing: {
         ...listing,
-        vendors: listing.vendors
-          ? { ...listing.vendors, contact_phone: undefined, contact_email: undefined }
-          : listing.vendors,
+        // Keep the legacy response type for existing UI reads, without selecting
+        // or returning either private contact value.
+        vendors: listing.vendors as typeof listing.vendors & {
+          contact_phone?: string | null;
+          contact_email?: string | null;
+        },
         effective_price: effectiveListingPrice(listing as never),
       },
       availability: availability ?? [],
