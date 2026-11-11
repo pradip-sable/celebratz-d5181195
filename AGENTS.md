@@ -39,6 +39,9 @@ session:
 - `requests` table fields: `kind` ('booking_request'|'enquiry'), exactly one
   of `listingId`/`packageId`, `selectedTierId` (only valid with `listingId`),
   `customerPhoneConfirm` required alongside `customerPhone`.
+- Database moderation guards use `public.is_privileged_caller()` for consistent
+  admin/service-role checks; request-row integrity and status-only updates are
+  enforced by a trigger on `public.requests`.
 
 ### Design system — use existing tokens, don't hardcode
 Colors are semantic CSS variables in the global stylesheet (`bg-primary`,
