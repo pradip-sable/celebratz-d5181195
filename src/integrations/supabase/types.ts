@@ -989,6 +989,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_privileged_caller: { Args: never; Returns: boolean }
       replace_listing_media: {
         Args: { _listing_id: string; _media: Json }
         Returns: undefined
