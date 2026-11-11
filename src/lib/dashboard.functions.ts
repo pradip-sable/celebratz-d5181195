@@ -94,7 +94,7 @@ export const updateRequestStatus = createServerFn({ method: "POST" })
     z
       .object({
         requestId: z.string().uuid(),
-        status: z.enum(["accepted", "declined"]),
+        status: z.enum(["accepted", "declined", "closed"]),
         note: z.string().trim().min(1).max(500).optional(),
       })
       .parse(data)
