@@ -50,6 +50,13 @@
       "when": 1794380256463,
       "tag": "0006_harden_request_field_integrity",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1795448326913,
+      "tag": "0007_check_sql_editor_session_user",
+      "breakpoints": true
     }
   ]
 }
