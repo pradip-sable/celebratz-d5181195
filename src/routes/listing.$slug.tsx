@@ -4,7 +4,6 @@ import { useServerFn } from "@tanstack/react-start";
 import { useState, useEffect } from "react";
 import {
   MapPin,
-  Phone,
   Mail,
   Star,
   Clock,
@@ -515,18 +514,19 @@ function ListingPage() {
             </div>
 
 
-            <div className="mt-6 border-t border-border/40 pt-5">
-              <h3 className="font-medium">Vendor</h3>
-              <p className="mt-1 font-serif text-lg font-semibold">{listing.vendors?.business_name}</p>
-              <p className="mt-2 text-sm text-muted-foreground">{listing.vendors?.about}</p>
-              <div className="mt-3 space-y-1 text-sm">
-                <p className="flex items-center gap-2">
-                  <Phone className="h-4 w-4 text-muted-foreground" /> {listing.vendors?.contact_phone}
-                </p>
-                <p className="flex items-center gap-2">
-                  <Mail className="h-4 w-4 text-muted-foreground" /> {listing.vendors?.contact_email}
-                </p>
-              </div>
+            <div className="mt-6 border-t border-border/40 pt-5 text-sm">
+              {listing.vendors && (
+                <div className="mb-4">
+                  <h3 className="font-medium">Vendor</h3>
+                  <p className="mt-1 font-serif text-lg font-semibold">{listing.vendors.business_name}</p>
+                  {listing.vendors.about && (
+                    <p className="mt-2 text-muted-foreground">{listing.vendors.about}</p>
+                  )}
+                </div>
+              )}
+              <p className="text-xs text-muted-foreground">
+                Send an enquiry and the vendor's contact details are shared with you once they accept.
+              </p>
             </div>
 
             <p className="mt-5 text-xs text-muted-foreground">

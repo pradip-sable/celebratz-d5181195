@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { addDays, format } from "date-fns";
-import { AlertCircle, ChevronLeft, ChevronRight, Gift, Mail, Phone, Star } from "lucide-react";
+import { AlertCircle, ChevronLeft, ChevronRight, Gift, Star } from "lucide-react";
 import { getPackageBySlug } from "@/lib/packages.functions";
 import {
   computePackagePrice,
@@ -190,19 +190,16 @@ function PackageDetail() {
             </div>
 
             <div className="mt-6 border-t border-border/40 pt-5 text-sm">
-              <h3 className="font-medium">Vendor</h3>
-              <p className="mt-1 font-serif text-lg font-semibold">{pkg.vendor?.business_name}</p>
-              {pkg.vendor?.about && <p className="mt-2 text-muted-foreground">{pkg.vendor.about}</p>}
-              {pkg.vendor?.contact_phone && (
-                <p className="mt-3 flex items-center gap-2">
-                  <Phone className="h-4 w-4 text-muted-foreground" /> {pkg.vendor.contact_phone}
-                </p>
+              {pkg.vendor && (
+                <div className="mb-4">
+                  <h3 className="font-medium">Vendor</h3>
+                  <p className="mt-1 font-serif text-lg font-semibold">{pkg.vendor.business_name}</p>
+                  {pkg.vendor.about && <p className="mt-2 text-muted-foreground">{pkg.vendor.about}</p>}
+                </div>
               )}
-              {pkg.vendor?.contact_email && (
-                <p className="mt-1 flex items-center gap-2">
-                  <Mail className="h-4 w-4 text-muted-foreground" /> {pkg.vendor.contact_email}
-                </p>
-              )}
+              <p className="text-xs text-muted-foreground">
+                Send an enquiry and the vendor's contact details are shared with you once they accept.
+              </p>
             </div>
           </div>
         </aside>

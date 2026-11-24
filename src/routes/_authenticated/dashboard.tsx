@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useSuspenseQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { getMyProfile, getMyRequests } from "@/lib/dashboard.functions";
+import { getMyProfile, getMyRequests, getVendorContactForRequest } from "@/lib/dashboard.functions";
 import { getMyReviewData } from "@/lib/engagement.functions";
 import { resolveMediaUrl } from "@/lib/media-url";
 import { CustomerShell } from "@/components/CustomerShell";
@@ -15,6 +15,9 @@ import {
   Sparkles,
   Package as PackageIcon,
   Loader2,
+  Phone,
+  Mail,
+  MessageSquare,
 } from "lucide-react";
 import { Suspense } from "react";
 
@@ -53,6 +56,13 @@ function DashboardContent() {
     queryKey: ["my-requests"],
     queryFn: () => getMyRequests(),
   });
+
+  const fetchProfile = useServerFn(getMyProfile);
+  const { data: profile } = useQuery({
+    queryKey: ["profile"],
+    queryFn: () => fetchProfile(),
+  });
+  const customerName = profile?.full_name?.trim() || "a customer";
 
   const fetchReviews = useServerFn(getMyReviewData);
   const { data: reviewData } = useQuery({
@@ -217,6 +227,16 @@ function DashboardContent() {
                   )}
                 </div>
 
+                {/* Contact Vendor row (for accepted requests only) */}
+                {isAccepted && (
+                  <VendorContactRow
+                    requestId={req.id}
+                    customerName={customerName}
+                    eventType={req.event_type}
+                    itemTitle={title}
+                  />
+                )}
+
                 {/* Post-Event Review Trigger (if accepted and date has passed) */}
                 {isAccepted && isEventPast && !hasReviewed && (
                   <div className="p-4 bg-accent-subtle/50 border border-accent/30 rounded-xl flex flex-col sm:flex-row items-center justify-between gap-3">
@@ -247,6 +267,108 @@ function DashboardSkeleton() {
   return (
     <div className="flex justify-center py-16">
       <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+    </div>
+  );
+}
+
+function normalizePhone(rawPhone?: string | null): { telUrl: string; waDigits: string } | null {
+  if (!rawPhone) return null;
+  let digits = rawPhone.replace(/\D/g, "");
+  if (!digits) return null;
+  if (digits.length === 11 && digits.startsWith("0")) {
+    digits = digits.slice(1);
+  }
+  if (digits.length === 10) {
+    digits = `91${digits}`;
+  }
+  return {
+    telUrl: `tel:+${digits}`,
+    waDigits: digits,
+  };
+}
+
+function VendorContactRow({
+  requestId,
+  customerName,
+  eventType,
+  itemTitle,
+}: {
+  requestId: string;
+  customerName: string;
+  eventType?: string | null;
+  itemTitle: string;
+}) {
+  const fetchVendorContact = useServerFn(getVendorContactForRequest);
+  const { data: contact, isLoading, isError } = useQuery({
+    queryKey: ["vendor-contact", requestId],
+    queryFn: () => fetchVendorContact({ data: { requestId } }),
+    staleTime: 5 * 60 * 1000,
+  });
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center gap-2 rounded-xl border border-border bg-muted/40 p-3 text-xs text-muted-foreground">
+        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+        <span>Loading vendor contact details...</span>
+      </div>
+    );
+  }
+
+  if (isError || !contact) {
+    return null;
+  }
+
+  const phoneData = normalizePhone(contact.phone);
+  const vendorName = contact.businessName?.trim() || "Vendor";
+  const celebrationEvent = eventType?.trim() || "celebration";
+  const customer = customerName?.trim() || "a customer";
+
+  const waText = `Hi ${vendorName}, this is ${customer} about my ${celebrationEvent} enquiry for ${itemTitle} on Celebratz.`;
+  const waUrl = phoneData ? `https://wa.me/${phoneData.waDigits}?text=${encodeURIComponent(waText)}` : null;
+
+  const mailSubject = `Celebratz enquiry for ${itemTitle}`;
+  const mailBody = `Hi ${vendorName},\n\nThis is ${customer} about my ${celebrationEvent} enquiry for ${itemTitle} on Celebratz.`;
+  const mailUrl = contact.email?.trim()
+    ? `mailto:${contact.email.trim()}?subject=${encodeURIComponent(mailSubject)}&body=${encodeURIComponent(mailBody)}`
+    : null;
+
+  return (
+    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-xl border border-border bg-muted/40 p-3.5 text-xs">
+      <div>
+        <span className="block text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+          Contact Vendor
+        </span>
+        <span className="font-serif font-bold text-foreground text-sm">
+          {contact.businessName}
+        </span>
+      </div>
+
+      <div className="flex flex-wrap items-center gap-2">
+        {phoneData && (
+          <Button asChild size="sm" variant="outline" className="h-8 gap-1.5 rounded-lg text-xs font-semibold">
+            <a href={phoneData.telUrl}>
+              <Phone className="h-3.5 w-3.5" />
+              <span>Call</span>
+            </a>
+          </Button>
+        )}
+        {waUrl && (
+          <Button asChild size="sm" variant="outline" className="h-8 gap-1.5 rounded-lg text-xs font-semibold">
+            <a href={waUrl} target="_blank" rel="noopener noreferrer">
+              <MessageSquare className="h-3.5 w-3.5" />
+              <span>WhatsApp</span>
+            </a>
+          </Button>
+        )}
+        {mailUrl && (
+          <Button asChild size="sm" variant="outline" className="h-8 gap-1.5 rounded-lg text-xs font-semibold">
+            <a href={mailUrl}>
+              <Mail className="h-3.5 w-3.5" />
+              <span>Email</span>
+            </a>
+          </Button>
+        )}
+      </div>
     </div>
   );
 }
